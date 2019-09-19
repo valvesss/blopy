@@ -13,7 +13,7 @@ class Peer():
     def __init__(self):
 
         # The IP of this node
-        self.host = get_ip()
+        self.host = '192.168.0.40'
 
         # The port this node is up
         self.port = 5000
