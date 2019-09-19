@@ -58,8 +58,9 @@ class Peer():
             try:
                 logging.info('Peer {0} is set up, waiting for new connections.'.format(self.id))
                 connection, client_address = self.sock.accept()
-                print(connection, client_address)
-                inbound_peer = PeerConnection(self.__init__, self.sock, self.host=)
+                print('connection:', connection)
+                print('connection:', client_address)
+                inbound_peer = PeerConnection(self.__init__, self.sock, self.host)
                 if connection:
                     self.sock.close()
                     logging.info('Original peer closed')
@@ -152,4 +153,4 @@ def get_ip():
 
 peer = Peer()
 peer.init_server()
-peer.connect_with_peer('192.168.0.40', 5000)
+peer.run()
