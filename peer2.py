@@ -59,7 +59,7 @@ class Peer():
                 logging.info('Peer {0} is set up, waiting for new connections.'.format(self.id))
                 connection, client_address = self.sock.accept()
                 print(connection, client_address)
-                inbound_peer = PeerConnection(connection, client_address)
+                inbound_peer = PeerConnection(self.__init__, self.sock, self.host=)
                 if connection:
                     self.sock.close()
                     logging.info('Original peer closed')
