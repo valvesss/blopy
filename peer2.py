@@ -1,4 +1,5 @@
 import sys
+import json
 import uuid
 import socket
 import logging
@@ -119,10 +120,10 @@ class PeerConnection():
 
     def send(self, data):
         try:
-            message = json.dumps(data, separators=(',', ':')) + "-TSN";
+            message = json.dumps(data, separators=(',', ':'))
             self.sock.sendall(message.encode('utf-8'))
         except Exception as err:
-            logging.error('An error ocurred on peer {0}: \n{1}'.formaT(self.id, err))
+            logging.error('An error ocurred on peer {0}: \n{1}'.format(self.id, err))
             sys.exit(0)
 
     def receive(self):
