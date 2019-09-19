@@ -37,6 +37,9 @@ class Peer():
         # Nodes the this node is connected to
         self.nodesOut = []
 
+        # Iniciate server listening
+        self.init_server()
+
     def init_server(self):
         logging.info("Inicializating peer at: {0}:{1} with ID: {2}".format(self.host,self.port,self.id))
 
@@ -147,5 +150,4 @@ def get_ip():
     return socket.gethostbyname(hostname)
 
 peer = Peer()
-peer.init_server()
 peer.run()

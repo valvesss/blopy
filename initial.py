@@ -119,6 +119,6 @@ def new_transaction():
 
 blockchain = Blockchain()
 blockchain.create_genesis_block()
-new_transaction()
-blockchain.mine()
-[pprint(block.__dict__) for block in blockchain.chain]
+# new_transaction()
+# blockchain.mine()
+# [pprint(block.__dict__) for block in blockchain.chain]
