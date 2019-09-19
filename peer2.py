@@ -60,7 +60,7 @@ class Peer():
         inbound_peer = PeerConnection(self.__init__, self.sock, client_address)
         data = 'Hello! This is a test :)'
         import time
-        time.sleep(10)
+        time.sleep(5)
         inbound_peer.send(data)
         # if connection:
         self.sock.close()

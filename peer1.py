@@ -54,18 +54,12 @@ class Peer():
         #self.close_socket_connection()
 
     def run(self):
-        while True:
-            try:
-                logging.info('Peer {0} is set up, waiting for new connections.'.format(self.id))
-                connection, client_address = self.sock.accept()
-                inbound_peer = PeerConnection(self.__init__, self.sock, client_address)
-                inbound_peer.receive()
-                if connection:
-                    self.sock.close()
-                    logging.info('Original peer closed')
-            except socket.timeout:
-                pass
-
+        logging.info('Peer {0} is set up, waiting for new connections.'.format(self.id))
+        connection, client_address = self.sock.accept()
+        inbound_peer = PeerConnection(self.__init__, self.sock, client_address)
+        inbound_peer.receive()
+        self.sock.close()
+        
     def get_message_count_send(self):
         return self.message_count_send
 
