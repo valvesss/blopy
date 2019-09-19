@@ -113,7 +113,7 @@ class PeerConnection():
         self.buffer = ""
         self.id = uuid.uuid1()
 
-        logging.info('Peer is now connected to peer {1}'.format(self.host))
+        logging.info('Peer is now connected to peer {0}'.format(self.host))
 
     def send(self, data):
         data = 'Hello! This is a test :)'
