@@ -50,7 +50,7 @@ class Peer():
 
         # Enables the server to accept connections | With only 1 to refuse before disconnect
         self.sock.listen(1)
-        logging.info('Peer {0} is listening.'.format(self.id))
+        logging.info('Peer {0} is listening.'.format(self.host))
         #self.close_socket_connection()
 
     def run(self):
@@ -59,7 +59,7 @@ class Peer():
         inbound_peer = PeerConnection(self.__init__, self.sock, client_address)
         inbound_peer.receive()
         self.sock.close()
-        
+
     def get_message_count_send(self):
         return self.message_count_send
 
@@ -147,5 +147,5 @@ def get_ip():
 
 peer = Peer()
 peer.init_server()
-peer.connect_with_peer('192.168.0.40', 5000)
+peer.connect_with_peer('172.20.10.3', 5000)
 peer.run()

@@ -14,7 +14,7 @@ class Peer():
     def __init__(self):
 
         # The IP of this node
-        self.host = '192.168.0.40'
+        self.host = '172.20.10.3'
 
         # The port this node is up
         self.port = 5000
@@ -86,7 +86,6 @@ class Peer():
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.connect((host, port))
             outbound_peer = PeerConnection(self.__init__, sock, host)
-            # outbound_peer.run()
             self.nodesOut.append(outbound_peer)
 
         except Exception as e:
