@@ -120,7 +120,7 @@ class PeerConnection():
 
     def send(self, data):
         try:
-            message = json.dumps(data, separators=(',', ':'))
+            message = json.dumps(data)
             self.sock.sendall(message.encode('utf-8'))
         except Exception as err:
             logging.error('An error ocurred on peer {0}: \n{1}'.format(self.id, err))
