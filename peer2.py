@@ -59,6 +59,7 @@ class Peer():
                 logging.info('Peer {0} is set up, waiting for new connections.'.format(self.id))
                 connection, client_address = self.sock.accept()
                 inbound_peer = PeerConnection(self.__init__, self.sock, client_address)
+                inbound_peer.send()
                 if connection:
                     self.sock.close()
                     logging.info('Original peer closed')
@@ -85,7 +86,7 @@ class Peer():
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.connect((host, port))
             outbound_peer = PeerConnection(self.__init__, sock, host)
-            outbound_peer.run()
+            # outbound_peer.run()
             self.nodesOut.append(outbound_peer)
 
         except Exception as e:

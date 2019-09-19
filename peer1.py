@@ -58,8 +58,7 @@ class Peer():
             try:
                 logging.info('Peer {0} is set up, waiting for new connections.'.format(self.id))
                 connection, client_address = self.sock.accept()
-                print(connection, client_address)
-                inbound_peer = PeerConnection(connection, client_address)
+                inbound_peer = PeerConnection(__init__, self.sock, client_address)
                 if connection:
                     self.sock.close()
                     logging.info('Original peer closed')
@@ -86,7 +85,7 @@ class Peer():
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.connect((host, port))
             outbound_peer = PeerConnection(self.__init__, sock, host)
-            outbound_peer.run()
+            outbound_peer.receive()
             self.nodesOut.append(outbound_peer)
 
         except Exception as e:
@@ -107,14 +106,14 @@ class PeerConnection():
 
     def __init__(self, peerServer, sock, host):
 
-        self.host = address[0]
+        self.host = host
         self.port = 5000
         self.peerServer = peerServer
         self.sock = sock
         self.buffer = ""
         self.id = uuid.uuid1()
 
-        logging.info('Peer {0} is now connected to peer {1}'.format(peerServer.host, self.host))
+        logging.info('Peer is now connected to peer {0}'.format(self.host))
 
     def send(self, data):
         data = 'Hello! This is a test :)'
