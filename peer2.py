@@ -59,7 +59,8 @@ class Peer():
                 logging.info('Peer {0} is set up, waiting for new connections.'.format(self.id))
                 connection, client_address = self.sock.accept()
                 inbound_peer = PeerConnection(self.__init__, self.sock, client_address)
-                inbound_peer.send()
+                data = 'Hello! This is a test :)'
+                inbound_peer.send(data)
                 if connection:
                     self.sock.close()
                     logging.info('Original peer closed')
@@ -117,8 +118,6 @@ class PeerConnection():
         logging.info('Peer is now connected to peer {0}'.format(self.host))
 
     def send(self, data):
-        data = 'Hello! This is a test :)'
-
         try:
             message = json.dumps(data, separators=(',', ':')) + "-TSN";
             self.sock.sendall(message.encode('utf-8'))
