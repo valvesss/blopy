@@ -71,9 +71,7 @@ class Peer():
                 inbound_peer.receive()
             except socket.timeout:
                 logging.info('Peer {0} has closed his connection due to timeout'.format(self.id))
-                self.stop_flag = True
-                self.sock.close()
-                return False
+                self.close_socket_connection()
 
             time.sleep(0.01)
 
@@ -107,18 +105,25 @@ class Peer():
 
         except Exception as e:
             logging.critical("Could not connect with node! Error: {}".format(e))
+            self.close_socket_connection()
             sys.exit(0)
         return outbound_peer
 
     def validate_new_peer_connection(self, host):
         if host == self.host:
             logging.critical('Cannot stablish connection with this own peer! Aborting.')
+            self.close_socket_connection()
             sys.exit(0)
 
         for node in self.nodesOut:
             if node.get_host() == host:
                 logging.critical('Already connected with this peer! Aborting.')
+                self.close_socket_connection()
                 sys.exit(0)
+
+    def close_socket_connection(self):
+        self.stop_flag = True
+        self.sock.close()
 
 class PeerConnection():
 
