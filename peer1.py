@@ -164,7 +164,7 @@ class PeerConnection():
                 print('peer1 buffer:',self.buffer)
                 self.sock.close()
                 logging.info('Peer {0} has closed his connection due to received packets'.format(self.id))
-                self.stop_flag = True
+                return False
 
         self.sock.settimeout(None)
         self.sock.close()
