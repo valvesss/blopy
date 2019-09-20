@@ -101,7 +101,7 @@ class Peer():
             sock.connect((host, port))
             outbound_peer = PeerConnection(sock, host, port)
             self.nodesOut.append(outbound_peer)
-            print('nodesOut:', nodesOut[0].host)
+            print('nodesOut:', self.nodesOut[0].host)
 
         except Exception as e:
             logging.critical("Could not connect with node! Error: {}".format(e))
