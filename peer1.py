@@ -66,12 +66,18 @@ class Peer():
                 connection, client_address = self.sock.accept()
                 inbound_peer = PeerConnection(self.__init__, self.sock, client_address)
                 self.nodesIn.append(inbound_peer)
+                inbound_peer.receive()
             except socket.timeout:
+                logging.info('Peer {0} has closed his connection due to timeout'.format(self.id))
                 self.sock.close()
+                return False
+
+            time.sleep(1)
 
         # If flag is set true, close all conecctions and itself
         for nodesIn in self.nodesIn:
             nodesIn.stop()
+
         self.sock.close()
 
     def get_message_count_send(self):
@@ -95,7 +101,7 @@ class Peer():
             sock.connect((host, port))
             outbound_peer = PeerConnection(self.__init__, sock, host)
             data = 'Hello! This is a Test!'
-            outbound_peer.send()
+            outbound_peer.send(data)
             self.nodesOut.append(outbound_peer)
 
         except Exception as e:
@@ -162,4 +168,5 @@ def get_ip():
     return socket.gethostbyname(hostname)
 
 peer = Peer()
+# peer.run()
 peer.connect_with_peer('192.168.0.40', 5000)

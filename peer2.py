@@ -68,10 +68,13 @@ class Peer():
                 self.nodesIn.append(inbound_peer)
                 inbound_peer.receive()
             except socket.timeout:
+                logging.info('Peer {0} has closed his connection due to timeout'.format(self.id))
                 self.sock.close()
+                return False
 
             time.sleep(1)
 
+        # If flag is set true, close all conecctions and itself
         for nodesIn in self.nodesIn:
             nodesIn.stop()
 
