@@ -137,6 +137,7 @@ class PeerConnection():
         message = 'Hello! This is a test :)'
 
         try:
+            print('message encoded:',message.encode('utf-8'))
             self.sock.sendall(message.encode('utf-8'))
             logging.info('Peer {0} sent a message to all nodes!'.format(self.host))
         except Exception as err:
@@ -156,19 +157,18 @@ class PeerConnection():
                 print('pppackets (after encode):', packets)
             except socket.timeout:
                 logging.info('Peer {0} has closed his connection due to timeout'.format(self.id))
-                self.sock.close()
+                self.close_socket_connection()
 
             if packets != "":
                 print('packets:', packets)
                 self.buffer += str(packets.decode('utf-8'))
                 print('peer1 buffer:',self.buffer)
-                self.sock.close()
                 logging.info('Peer {0} has closed his connection due to received packets'.format(self.id))
-                return False
+                self.close_socket_connection()
 
-        self.sock.settimeout(None)
+    def close_socket_connection(self):
+        self.stop_flag = True
         self.sock.close()
-        logging.info('Peer {0} has closed his connection'.format(self.id))
 
 def get_ip():
     if os.name == 'nt':
@@ -179,10 +179,15 @@ def get_ip():
         ip = netifaces.ifaddresses('enp0s3')[netifaces.AF_INET][0]['addr']
     return ip
 
-peer = Peer()
-node1 = peer.connect_with_peer('172.20.10.3', 5000)
-time.sleep(3)
-node1.send()
-# peer.run()
-# time.sleep(15)
-# peer.stop_flag = True
+def main():
+    peer = Peer()
+    if len(sys.argv) > 1:
+        # peer.run()
+        node1 = peer.connect_with_peer('172.20.10.3', 5000)
+        time.sleep(3)
+        node1.send()
+        node1.stop_flag = True
+    else:
+        peer.run()
+        time.sleep(15)
+        peer.stop_flag = True
