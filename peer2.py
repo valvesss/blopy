@@ -159,8 +159,8 @@ class PeerConnection():
                 print('data:',data)
                 self.sock.close()
                 logging.info('Peer {0} has closed his connection due to received packets'.format(self.id))
-            else:
                 self.stop_flag = True
+
         self.sock.close()
 
 def get_ip():
