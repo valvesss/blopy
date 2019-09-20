@@ -62,13 +62,13 @@ class Peer():
         self.sock.listen(1)
 
     def run(self):
-        while self.stop_flag is False:
+        while not self.stop_flag:
             try:
                 logging.info('Peer {0} is set up, waiting for new connections.'.format(self.id))
                 connection, client_address = self.sock.accept()
                 inbound_peer = PeerConnection(self.sock, client_address[0], client_address[1])
-                self.nodesIn.append(inbound_peer)
                 inbound_peer.receive()
+                self.nodesIn.append(inbound_peer)
             except socket.timeout:
                 logging.info('Peer {0} has closed his connection due to timeout'.format(self.id))
                 self.close_socket_connection()
@@ -149,7 +149,7 @@ class PeerConnection():
     def receive(self):
         self.sock.settimeout(10.0)
         logging.info('Peer {0} is ready to receive packets'.format(self.host))
-        while self.stop_flag is False:
+        while not self.stop_flag:
             packets = ""
             try:
                 packets = self.sock.recv(4096)
@@ -161,9 +161,12 @@ class PeerConnection():
                 self.close_socket_connection()
 
             if packets != "":
-                print('packets:', packets)
-                self.buffer += str(packets.decode('utf-8'))
-                print('peer1 buffer:',self.buffer)
+                try:
+                    self.buffer += str(packets.decode('utf-8'))
+                    print('peer1 buffer:',self.buffer)
+                except:
+                    logging.info('Error in decode message!')
+                    self.close_socket_connection()
                 logging.info('Peer {0} has closed his connection due to received packets'.format(self.id))
                 self.close_socket_connection()
 
