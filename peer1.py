@@ -79,7 +79,7 @@ class Peer():
         for nodesIn in self.nodesIn:
             nodesIn.stop()
 
-        self.sock.close()
+        self.close_socket_connection()
 
     def get_message_count_send(self):
         return self.message_count_send
@@ -139,7 +139,6 @@ class PeerConnection():
         message = 'Hello! This is a test :)'
 
         try:
-            print('message encoded:',message.encode('utf-8'))
             self.sock.sendall(message.encode('utf-8'))
             logging.info('Peer {0} sent a message to all nodes!'.format(self.host))
         except Exception as err:
