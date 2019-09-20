@@ -137,7 +137,6 @@ class PeerConnection():
         message = 'Hello! This is a test :)'
 
         try:
-            # message = json.dumps(data)
             self.sock.sendall(message.encode('utf-8'))
             logging.info('Peer {0} sent a message to all nodes!'.format(self.host))
         except Exception as err:
@@ -147,19 +146,18 @@ class PeerConnection():
 
     def receive(self):
         self.sock.settimeout(10.0)
+        logging.info('Peer {0} is ready to receive packets'.format(self.host))
         while self.stop_flag is False:
-            logging.info('Peer {0} is ready to receive packets'.format(self.host))
-
             packets = ""
             try:
                 packets = self.sock.recv(4096)
+                print('pppackets (befor encode):', packets)
                 packets = packets.encode('utf-8')
-
+                print('pppackets (after encode):', packets)
             except socket.timeout:
                 logging.info('Peer {0} has closed his connection due to timeout'.format(self.id))
                 self.sock.close()
 
-            print('pppackets:', packets)
             if packets != "":
                 print('packets:', packets)
                 self.buffer += str(packets.decode('utf-8'))
@@ -178,11 +176,11 @@ def get_ip():
         ip = socket.gethostbyname(hostname)
     elif os.name == 'posix':
         netifaces.ifaddresses('enp0s3')
-        ip = netifaces.ifaddresses('enp0s3')[ni.AF_INET][0]['addr']
+        ip = netifaces.ifaddresses('enp0s3')[netifaces.AF_INET][0]['addr']
     return ip
 
 peer = Peer()
-node1 = peer.connect_with_peer('192.168.0.40', 5000)
+node1 = peer.connect_with_peer('172.20.10.3', 5000)
 time.sleep(3)
 node1.send()
 # peer.run()
