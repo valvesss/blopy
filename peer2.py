@@ -64,7 +64,7 @@ class Peer():
             try:
                 logging.info('Peer {0} is set up, waiting for new connections.'.format(self.id))
                 connection, client_address = self.sock.accept()
-                inbound_peer = PeerConnection(self.__init__, self.sock, client_address)
+                inbound_peer = PeerConnection(self.sock, client_address[0], client_address[1])
                 self.nodesIn.append(inbound_peer)
                 inbound_peer.receive()
             except socket.timeout:
