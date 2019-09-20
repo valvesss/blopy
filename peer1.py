@@ -122,7 +122,7 @@ class PeerConnection():
 
     def __init__(self, peerServer, sock, host):
 
-        self.host = host
+        self.host = host[0]
         self.port = 5000
         self.peerServer = peerServer
         self.sock = sock
@@ -137,8 +137,9 @@ class PeerConnection():
         try:
             message = json.dumps(data)
             self.sock.sendall(message.encode('utf-8'))
+            logging.info('Peer {0} sent a message to all nodes!'.format(self.host))
         except Exception as err:
-            logging.error('Peer {0} could not send message! \nError: {1}'.format(self.id, err))
+            logging.error('Peer {0} could not send message! \nError: {1}'.format(self.host, err))
             self.sock.close()
             sys.exit(0)
 

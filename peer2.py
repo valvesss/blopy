@@ -69,6 +69,7 @@ class Peer():
                 inbound_peer.receive()
             except socket.timeout:
                 logging.info('Peer {0} has closed his connection due to timeout'.format(self.id))
+                self.stop_flag = True
                 self.sock.close()
                 return False
 
@@ -120,7 +121,7 @@ class PeerConnection():
 
     def __init__(self, peerServer, sock, host):
 
-        self.host = host
+        self.host = host[0]
         self.port = 5000
         self.peerServer = peerServer
         self.sock = sock
