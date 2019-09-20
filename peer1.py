@@ -101,7 +101,6 @@ class Peer():
             sock.connect((host, port))
             outbound_peer = PeerConnection(sock, host, port)
             self.nodesOut.append(outbound_peer)
-            print('nodesOut:', self.nodesOut[0].host)
 
         except Exception as e:
             logging.critical("Could not connect with node! Error: {}".format(e))
@@ -124,7 +123,6 @@ class PeerConnection():
 
         self.host = host
         self.port = port
-        # self.peerServer = peerServer
         self.sock = sock
         self.buffer = ""
         self.id = uuid.uuid1()
@@ -170,4 +168,5 @@ def get_ip():
 
 peer = Peer()
 node1 = peer.connect_with_peer('192.168.0.40', 5000)
+time.sleep(3)
 node1.send()

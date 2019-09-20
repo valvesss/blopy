@@ -139,7 +139,7 @@ class PeerConnection():
 
     def receive(self):
         self.sock.settimeout(10.0)
-        while True:
+        while self.stop_flag is False:
             logging.info('Peer {0} is ready to receive packets'.format(self.host))
             packets = ""
             try:
