@@ -100,6 +100,7 @@ class Peer():
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.connect((host, port))
             outbound_peer = PeerConnection(self.__init__, sock, host)
+            time.sleep(3)
             outbound_peer.send()
             self.nodesOut.append(outbound_peer)
             print('nodesOut:', nodesOut[0].host)
