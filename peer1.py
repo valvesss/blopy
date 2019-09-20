@@ -104,7 +104,7 @@ class Peer():
             print('nodesOut:', nodesOut[0].host)
 
         except Exception as e:
-            logging.critical("Could not connect with node!")
+            logging.critical("Could not connect with node! Error: {}".format(e))
             sys.exit(0)
         return outbound_peer
 
