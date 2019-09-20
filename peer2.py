@@ -151,15 +151,17 @@ class PeerConnection():
                 logging.info('Peer {0} has closed his connection due to timeout'.format(self.id))
                 self.sock.close()
 
+            print('pppackets:', packets)
             if packets != "":
                 print('packets:', packets)
                 self.buffer += str(packets.decode('utf-8'))
                 # data = json.loads(self.buffer)
                 print('data:',data)
+                self.sock.close()
+                logging.info('Peer {0} has closed his connection due to received packets'.format(self.id))
             else:
                 self.stop_flag = True
         self.sock.close()
-        logging.info('Peer {0} has closed his connection due to received packets'.format(self.id))
 
 def get_ip():
     hostname = socket.gethostname()
