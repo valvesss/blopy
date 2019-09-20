@@ -99,15 +99,14 @@ class Peer():
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.connect((host, port))
-            outbound_peer = PeerConnection(self.__init__, sock, host)
-            time.sleep(3)
-            outbound_peer.send()
+            outbound_peer = PeerConnection(sock, host, port)
             self.nodesOut.append(outbound_peer)
             print('nodesOut:', nodesOut[0].host)
 
         except Exception as e:
             logging.critical("Could not connect with node!")
             sys.exit(0)
+        return outbound_peer
 
     def validate_new_peer_connection(self, host):
         if host == self.host:
@@ -121,11 +120,11 @@ class Peer():
 
 class PeerConnection():
 
-    def __init__(self, peerServer, sock, host):
+    def __init__(self, sock, host, port):
 
         self.host = host
-        self.port = 5000
-        self.peerServer = peerServer
+        self.port = port
+        # self.peerServer = peerServer
         self.sock = sock
         self.buffer = ""
         self.id = uuid.uuid1()
@@ -170,5 +169,5 @@ def get_ip():
     return socket.gethostbyname(hostname)
 
 peer = Peer()
-# peer.run()
-peer.connect_with_peer('192.168.0.40', 5000)
+node1 = peer.connect_with_peer('192.168.0.40', 5000)
+node1.send()
