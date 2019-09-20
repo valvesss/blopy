@@ -186,7 +186,7 @@ def get_ip():
 def main():
     peer = Peer()
     if len(sys.argv) > 1:
-        # peer.run()
+        peer.run()
         node1 = peer.connect_with_peer('172.20.10.3', 5000)
         time.sleep(3)
         node1.send()
