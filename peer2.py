@@ -1,4 +1,5 @@
 import sys
+import time
 import json
 import uuid
 import socket
@@ -14,7 +15,7 @@ class Peer():
     def __init__(self):
 
         # The IP of this node
-        self.host = '172.20.10.3'
+        self.host = '192.168.0.40'
 
         # The port this node is up
         self.port = 5000
@@ -40,6 +41,9 @@ class Peer():
         # Iniciate server listening
         self.init_server()
 
+        # Set stop flag
+        self.stop_flag = False
+
     def init_server(self):
         logging.info("Inicializating peer at: {0}:{1} with ID: {2}".format(self.host,self.port,self.id))
 
@@ -54,20 +58,24 @@ class Peer():
 
         # Enables the server to accept connections | With only 1 to refuse before disconnect
         self.sock.listen(1)
-        logging.info('Peer {0} is listening.'.format(self.id))
-        #self.close_socket_connection()
 
     def run(self):
-        logging.info('Peer {0} is set up, waiting for new connections.'.format(self.id))
-        connection, client_address = self.sock.accept()
-        inbound_peer = PeerConnection(self.__init__, self.sock, client_address)
-        data = 'Hello! This is a test :)'
-        import time
-        time.sleep(5)
-        inbound_peer.send(data)
-        # if connection:
+        while self.stop_flag is False:
+            try:
+                logging.info('Peer {0} is set up, waiting for new connections.'.format(self.id))
+                connection, client_address = self.sock.accept()
+                inbound_peer = PeerConnection(self.__init__, self.sock, client_address)
+                self.nodesIn.append(inbound_peer)
+                inbound_peer.receive()
+            except socket.timeout:
+                self.sock.close()
+
+            time.sleep(1)
+
+        for nodesIn in self.nodesIn:
+            nodesIn.stop()
+
         self.sock.close()
-        #     logging.info('Original peer closed')
 
     def get_message_count_send(self):
         return self.message_count_send
@@ -134,16 +142,17 @@ class PeerConnection():
                 packets = packets.encode('utf-8')
 
             except socket.timeout:
-                pass
+                logging.info('Peer {0} has closed his connection due to timeout'.format(self.id))
+                self.sock.close()
 
             if packets != "":
                 self.buffer += str(packets.decode('utf-8'))
                 data = json.loads(self.buffer)
                 pprint(data)
-
-            self.sock.settimeout(None)
-            self.sock.close()
-            logging.info('Peer {0} has closed his connection'.format(self.id))
+            else:
+                return False
+        self.sock.close()
+        logging.info('Peer {0} has closed his connection due to received packets'.format(self.id))
 
 def get_ip():
     hostname = socket.gethostname()
@@ -151,3 +160,5 @@ def get_ip():
 
 peer = Peer()
 peer.run()
+time.sleep(15)
+peer.stop_flag = True

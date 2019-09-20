@@ -1,4 +1,6 @@
 import sys
+import time
+import json
 import uuid
 import socket
 import logging
@@ -39,6 +41,9 @@ class Peer():
         # Iniciate server listening
         self.init_server()
 
+        # Set stop flag
+        self.stop_flag = False
+
     def init_server(self):
         logging.info("Inicializating peer at: {0}:{1} with ID: {2}".format(self.host,self.port,self.id))
 
@@ -53,14 +58,20 @@ class Peer():
 
         # Enables the server to accept connections | With only 1 to refuse before disconnect
         self.sock.listen(1)
-        logging.info('Peer {0} is listening.'.format(self.host))
-        #self.close_socket_connection()
 
     def run(self):
-        logging.info('Peer {0} is set up, waiting for new connections.'.format(self.id))
-        connection, client_address = self.sock.accept()
-        inbound_peer = PeerConnection(self.__init__, self.sock, client_address)
-        inbound_peer.receive()
+        while self.stop_flag is False:
+            try:
+                logging.info('Peer {0} is set up, waiting for new connections.'.format(self.id))
+                connection, client_address = self.sock.accept()
+                inbound_peer = PeerConnection(self.__init__, self.sock, client_address)
+                self.nodesIn.append(inbound_peer)
+            except socket.timeout:
+                self.sock.close()
+
+        # If flag is set true, close all conecctions and itself
+        for nodesIn in self.nodesIn:
+            nodesIn.stop()
         self.sock.close()
 
     def get_message_count_send(self):
@@ -83,7 +94,8 @@ class Peer():
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.connect((host, port))
             outbound_peer = PeerConnection(self.__init__, sock, host)
-            # outbound_peer.receive()
+            data = 'Hello! This is a Test!'
+            outbound_peer.send()
             self.nodesOut.append(outbound_peer)
 
         except Exception as e:
@@ -120,7 +132,8 @@ class PeerConnection():
             message = json.dumps(data)
             self.sock.sendall(message.encode('utf-8'))
         except Exception as err:
-            logging.error('An error ocurred on peer {0}: \n{1}'.format(self.id, err))
+            logging.error('Peer {0} could not send message! \nError: {1}'.format(self.id, err))
+            self.sock.close()
             sys.exit(0)
 
     def receive(self):
@@ -149,4 +162,4 @@ def get_ip():
     return socket.gethostbyname(hostname)
 
 peer = Peer()
-peer.connect_with_peer('172.20.10.3', 5000)
+peer.connect_with_peer('192.168.0.40', 5000)
