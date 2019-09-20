@@ -91,10 +91,6 @@ class Peer():
         if not self.chain:
             pass # REQUEST CHAIN
 
-    def close_socket_connection(self):
-        self.sock.close()
-        logging.info('Peer {0} has closed the connection.'.format(self.id))
-
     def connect_with_peer(self, host, port):
         self.validate_new_peer_connection(host)
         try:
@@ -122,6 +118,7 @@ class Peer():
                 sys.exit(0)
 
     def close_socket_connection(self):
+        logging.info('Peer {0} has closed the connection.'.format(self.id))
         self.stop_flag = True
         self.sock.close()
 
