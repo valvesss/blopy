@@ -191,3 +191,5 @@ def main():
         peer.run()
         time.sleep(15)
         peer.stop_flag = True
+
+main()
