@@ -73,7 +73,7 @@ class Peer():
                 self.sock.close()
                 return False
 
-            time.sleep(1)
+            time.sleep(0.01)
 
         # If flag is set true, close all conecctions and itself
         for nodesIn in self.nodesIn:

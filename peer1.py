@@ -100,9 +100,9 @@ class Peer():
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.connect((host, port))
             outbound_peer = PeerConnection(self.__init__, sock, host)
-            data = 'Hello! This is a Test!'
-            outbound_peer.send(data)
+            outbound_peer.send()
             self.nodesOut.append(outbound_peer)
+            print('nodesOut:', nodesOut[0].host)
 
         except Exception as e:
             logging.critical("Could not connect with node!")
@@ -131,7 +131,7 @@ class PeerConnection():
 
         logging.info('Peer is now connected to peer {0}'.format(self.host))
 
-    def send(self, data):
+    def send(self):
         data = 'Hello! This is a test :)'
 
         try:
