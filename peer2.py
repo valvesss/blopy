@@ -152,9 +152,10 @@ class PeerConnection():
                 self.sock.close()
 
             if packets != "":
+                print('packets:', packets)
                 self.buffer += str(packets.decode('utf-8'))
-                data = json.loads(self.buffer)
-                pprint(data)
+                # data = json.loads(self.buffer)
+                print('data:',data)
             else:
                 self.stop_flag = True
         self.sock.close()
