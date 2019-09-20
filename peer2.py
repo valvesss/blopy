@@ -100,7 +100,7 @@ class Peer():
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.connect((host, port))
-            outbound_peer = PeerConnection(self.__init__, sock, host)
+            outbound_peer = PeerConnection(sock, host, port)
             self.nodesOut.append(outbound_peer)
 
         except Exception as e:
@@ -119,14 +119,15 @@ class Peer():
 
 class PeerConnection():
 
-    def __init__(self, peerServer, sock, host):
+    def __init__(self, sock, host, port):
 
-        self.host = host[0]
-        self.port = 5000
-        self.peerServer = peerServer
+        self.host = host
+        self.port = port
+        # self.peerServer = peerServer
         self.sock = sock
         self.buffer = ""
         self.id = uuid.uuid1()
+        self.stop_flag = False
 
         logging.info('Peer is now connected to peer {0}'.format(self.host))
 
@@ -155,7 +156,7 @@ class PeerConnection():
                 data = json.loads(self.buffer)
                 pprint(data)
             else:
-                return False
+                self.stop_flag = True
         self.sock.close()
         logging.info('Peer {0} has closed his connection due to received packets'.format(self.id))
 
