@@ -122,7 +122,7 @@ class PeerConnection():
 
     def __init__(self, peerServer, sock, host):
 
-        self.host = host[0]
+        self.host = host
         self.port = 5000
         self.peerServer = peerServer
         self.sock = sock

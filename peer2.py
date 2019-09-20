@@ -140,6 +140,7 @@ class PeerConnection():
     def receive(self):
         self.sock.settimeout(10.0)
         while True:
+            print('Waiting packets')
             packets = ""
             try:
                 packets = self.sock.recv(4096)
