@@ -47,7 +47,7 @@ class Peer(threading.Thread):
         self.stop_flag = False
 
     def init_server(self):
-        logging.info("Inicializating peer at: {0}:{1} with ID: {2}".format(self.host,self.port,self.id))
+        logging.info("Inicializating peer at: {0}:{1}".format(self.host,self.port))
 
         # Defines the socket connection
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -56,21 +56,21 @@ class Peer(threading.Thread):
         self.sock.bind(('', self.port))
 
         # Set socket timeout
-        self.sock.settimeout(10.0)
+        self.sock.settimeout(50.0)
 
         # Enables the server to accept connections | With only 1 to refuse before disconnect
         self.sock.listen(1)
 
     def run(self):
+        logging.info('Peer {0} is set up, waiting for new connections.'.format(self.host))
         while not self.stop_flag:
             try:
-                logging.info('Peer {0} is set up, waiting for new connections.'.format(self.host))
                 connection, client_address = self.sock.accept()
                 inbound_peer = PeerConnection(self.sock, client_address[0], client_address[1])
                 inbound_peer.start()
                 self.nodesIn.append(inbound_peer)
-            except socket.timeout:
-                logging.info('Peer {0} has closed his connection due to timeout'.format(self.id))
+            except self.sock.timeout:
+                logging.info('Peer {0} has closed his connection due to timeout'.format(self.host))
                 self.stop()
 
             time.sleep(0.01)
@@ -81,12 +81,6 @@ class Peer(threading.Thread):
             nodesIn.join()
 
         self.stop()
-
-    def get_message_count_send(self):
-        return self.message_count_send
-
-    def get_message_count_recv(self):
-        return self.message_count_recv
 
     def validate_node_chain(self):
         if not self.chain:
@@ -120,7 +114,7 @@ class Peer(threading.Thread):
                 sys.exit(0)
 
     def stop(self):
-        logging.info('Peer {0} has closed the connection.'.format(self.id))
+        logging.info('Peer {0} has closed the connection.'.format(self.host))
         self.stop_flag = True
         self.sock.close()
 
@@ -150,7 +144,7 @@ class PeerConnection(threading.Thread):
             sys.exit(0)
 
     def run(self):
-        self.sock.settimeout(10.0)
+        self.sock.settimeout(50.0)
         logging.info('Peer {0} is ready to receive packets'.format(self.host))
         while not self.stop_flag:
             packets = ""
@@ -159,8 +153,8 @@ class PeerConnection(threading.Thread):
                 print('pppackets (befor encode):', packets)
                 packets = packets.encode('utf-8')
                 print('pppackets (after encode):', packets)
-            except socket.timeout:
-                logging.info('Peer {0} has closed his connection due to timeout'.format(self.id))
+            except self.socket.timeout:
+                logging.info('Peer {0} has closed his connection due to timeout'.format(self.host))
                 self.stop()
 
             if packets != "":
@@ -170,7 +164,7 @@ class PeerConnection(threading.Thread):
                 except:
                     logging.info('Error in decode message!')
                     self.stop()
-                logging.info('Peer {0} has closed his connection due to received packets'.format(self.id))
+                logging.info('Peer {0} has closed his connection due to received packets'.format(self.host))
                 self.stop()
 
     def stop(self):
@@ -190,14 +184,13 @@ def main():
     peer = Peer()
     if len(sys.argv) > 1:
         peer.start()
-        node1 = peer.connect_with_peer('192.168.0.40', 5000)
+        node1 = peer.connect_with_peer('172.10.20.30', 5000)
         time.sleep(3)
         node1.send()
         node1.stop()
     else:
         peer.start()
         # node1 = peer.connect_with_peer('192.168.0.25', 5000)
-        time.sleep(15)
         peer.stop()
 
 main()
