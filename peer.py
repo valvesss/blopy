@@ -69,7 +69,7 @@ class Peer(threading.Thread):
                 inbound_peer = PeerConnection(self.sock, client_address[0], client_address[1])
                 inbound_peer.start()
                 self.nodesIn.append(inbound_peer)
-            except self.sock.timeout:
+            except socket.timeout:
                 logging.info('Peer {0} has closed his connection due to timeout'.format(self.host))
                 self.stop()
 
