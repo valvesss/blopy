@@ -64,7 +64,7 @@ class Peer(threading.Thread):
     def run(self):
         while not self.stop_flag:
             try:
-                logging.info('Peer {0} is set up, waiting for new connections.'.format(self.id))
+                logging.info('Peer {0} is set up, waiting for new connections.'.format(self.host))
                 connection, client_address = self.sock.accept()
                 inbound_peer = PeerConnection(self.sock, client_address[0], client_address[1])
                 inbound_peer.start()
@@ -98,6 +98,7 @@ class Peer(threading.Thread):
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.connect((host, port))
             outbound_peer = PeerConnection(sock, host, port)
+            outbound_peer.start()
             self.nodesOut.append(outbound_peer)
 
         except Exception as e:
@@ -127,7 +128,7 @@ class PeerConnection(threading.Thread):
 
     def __init__(self, sock, host, port):
         super(PeerConnection, self).__init__()
-        
+
         self.host = host
         self.port = port
         self.sock = sock
@@ -195,7 +196,7 @@ def main():
         node1.stop()
     else:
         peer.start()
-        node1 = peer.connect_with_peer('192.168.0.25', 5000)
+        # node1 = peer.connect_with_peer('192.168.0.25', 5000)
         time.sleep(15)
         peer.stop()
 
