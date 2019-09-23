@@ -66,7 +66,7 @@ class Peer(threading.Thread):
         while not self.stop_flag:
             try:
                 connection, client_address = self.sock.accept()
-                inbound_peer = PeerConnection(self.sock, client_address[0], client_address[1])
+                inbound_peer = PeerConnection(self.host, self.sock, client_address[0], client_address[1])
                 inbound_peer.start()
                 self.nodesIn.append(inbound_peer)
             except socket.timeout:
@@ -205,6 +205,7 @@ def main():
     if len(sys.argv) > 1:
         peerServer.start()
         peerServer.connect_with_peer('172.20.10.3', 5000)
+        peerServer.check_outbound_nodes()
         time.sleep(5)
         peerServer.send_to_nodes()
         time.sleep(5)
