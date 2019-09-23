@@ -114,7 +114,6 @@ class Peer(threading.Thread):
                 sys.exit(0)
 
     def stop(self):
-        logging.info('Peer {0} has closed the connection.'.format(self.host))
         self.stop_flag = True
         self.sock.close()
 
@@ -130,7 +129,7 @@ class PeerConnection(threading.Thread):
         self.id = uuid.uuid1()
         self.stop_flag = False
 
-        logging.info('Peer is now connected to peer {0}'.format(self.host))
+        logging.info('Peer is now connected to client {0}'.format(self.host))
 
     def send(self):
         message = 'Hello! This is a test :)'
@@ -185,8 +184,9 @@ def main():
     if len(sys.argv) > 1:
         peer.start()
         node1 = peer.connect_with_peer('172.20.10.3', 5000)
-        time.sleep(3)
+        time.sleep(5)
         node1.send()
+        time.sleep(5)
         node1.stop()
     else:
         peer.start()
