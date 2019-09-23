@@ -153,7 +153,7 @@ class PeerConnection(threading.Thread):
                 print('pppackets (befor encode):', packets)
                 packets = packets.encode('utf-8')
                 print('pppackets (after encode):', packets)
-            except self.socket.timeout:
+            except socket.timeout:
                 logging.info('Peer {0} has closed his connection due to timeout'.format(self.host))
                 self.stop()
 
@@ -184,12 +184,13 @@ def main():
     peer = Peer()
     if len(sys.argv) > 1:
         peer.start()
-        node1 = peer.connect_with_peer('172.10.20.30', 5000)
+        node1 = peer.connect_with_peer('172.20.10.3', 5000)
         time.sleep(3)
         node1.send()
         node1.stop()
     else:
         peer.start()
+        time.sleep(20)
         # node1 = peer.connect_with_peer('192.168.0.25', 5000)
         peer.stop()
 
