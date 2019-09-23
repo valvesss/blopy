@@ -91,7 +91,7 @@ class Peer(threading.Thread):
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.connect((host, port))
-            outbound_peer = PeerConnection(sock, host, port)
+            outbound_peer = PeerConnection(self.host, sock, host, port)
             outbound_peer.start()
             self.nodesOut.append(outbound_peer)
 
@@ -99,7 +99,6 @@ class Peer(threading.Thread):
             logging.critical("Could not connect with node! Error: {}".format(e))
             self.stop()
             sys.exit(0)
-        return outbound_peer
 
     def validate_new_peer_connection(self, host):
         if host == self.host:
@@ -113,15 +112,37 @@ class Peer(threading.Thread):
                 self.stop()
                 sys.exit(0)
 
+    def check_outbound_nodes(self):
+        for node in self.nodesOut:
+            print("Node {} is connected to {}.".format(node.host,self.host))
+
+    def send_to_nodes(self):
+        for node in self.nodesIn:
+            node.send()
+
+        for node in self.nodesOut:
+             node.send()
+
+    def close_clients_connections(self):
+        for node in self.nodesIn:
+            node.stop()
+            node.join()
+
+        for node in self.nodesOut:
+             node.stop()
+             node.join()
+
     def stop(self):
         self.stop_flag = True
+        self.close_clients_connections()
         self.sock.close()
 
 class PeerConnection(threading.Thread):
 
-    def __init__(self, sock, host, port):
+    def __init__(self, nodeServer, sock, host, port):
         super(PeerConnection, self).__init__()
 
+        self.nodeServer = nodeServer
         self.host = host
         self.port = port
         self.sock = sock
@@ -129,22 +150,22 @@ class PeerConnection(threading.Thread):
         self.id = uuid.uuid1()
         self.stop_flag = False
 
-        logging.info('Peer is now connected to client {0}'.format(self.host))
+        logging.info('Server is now connected to client {0}'.format(self.host))
 
     def send(self):
         message = 'Hello! This is a test :)'
 
         try:
             self.sock.sendall(message.encode('utf-8'))
-            logging.info('Peer {0} sent a message to all nodes!'.format(self.host))
+            logging.info('Server {0} sent a message to {1}!'.format(self.nodeServer,self.host))
         except Exception as err:
-            logging.error('Peer {0} could not send message! \nError: {1}'.format(self.host, err))
+            logging.error('Server {0} could not send message! \nError: {1}'.format(self.host, err))
             self.sock.close()
             sys.exit(0)
 
     def run(self):
         self.sock.settimeout(50.0)
-        logging.info('Peer {0} is ready to receive packets'.format(self.host))
+        logging.info('Client {0} is ready to receive packets'.format(self.host))
         while not self.stop_flag:
             packets = ""
             try:
@@ -180,18 +201,18 @@ def get_ip():
     return ip
 
 def main():
-    peer = Peer()
+    peerServer = Peer()
     if len(sys.argv) > 1:
-        peer.start()
-        node1 = peer.connect_with_peer('172.20.10.3', 5000)
+        peerServer.start()
+        peerServer.connect_with_peer('172.20.10.3', 5000)
         time.sleep(5)
-        node1.send()
+        peerServer.send_to_nodes()
         time.sleep(5)
-        node1.stop()
+        peerServer.stop()
     else:
-        peer.start()
+        peerServer.start()
         time.sleep(20)
         # node1 = peer.connect_with_peer('192.168.0.25', 5000)
-        peer.stop()
+        peerServer.stop()
 
 main()
