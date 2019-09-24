@@ -3,6 +3,7 @@ import sys
 import json
 import socket
 import logging
+import threading
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s :: %(levelname)s :: %(message)s')
 
@@ -18,7 +19,7 @@ class PeerServer():
         self.__sock__.bind(('', self.__port__))
         self.__sock__.listen()
         self.__sock__.settimeout(10.0)
-        logging.info('PeerServer is waiting for new connections.')
+        logging.info('PeerServer is waiting for income connections.')
 
     def run(self):
         while not self.__close_flag__:
@@ -40,22 +41,44 @@ class PeerServer():
         logging.info('Server closed his connection due to ' + msg)
         sys.exit(0)
 
-class PeerNode():
+class PeerNode(threading.Thread):
     def __init__(self, serverHost, sock, addr):
         self.__serverHost__ = serverHost
         self.__sock__ = sock
         self.__host__ = addr[0]
         self.__port__ = addr[1]
+        self.__buffer__ = ""
+        self.__close_flag__ = False
 
+        self.run()
         logging.info('Server connected to: {0}:{1}.'.format(self.__host__, self.__port__))
+
+    def run(self):
+        self.__sock__.settimeout(10)
+        packets = self.__sock__.recv(1024)
+        self.send(packets)
+        self.close_connection('finished run')
+        # while not self.__close_flag__:
+        #     packets = ""
+        #     try:
+        #         packets = self.__sock__.recv(1024)
+        #         packets = packets.encode('utf-8')
+        #     except socket.timeout:
+        #         self.close_connection('timeout')
+        #
+        #     if packets != "":
+        #         try:
+        #             self.__buffer__ += packets
+
 
     def send(self, data):
         self.__sock__.sendall(data)
         logging.info('Server sent a message to: {0}:{1}.'.format(self.__host__, self.__port__))
 
-    def close_connection(self):
+    def close_connection(self, msg):
+        self.__close_flag__ = True
         self.__sock__.close()
-        logging.info('Peer {0}:{1} has been disconnected.'.format(self.__host__, self.__port__))
+        logging.info('PeerNode {0}:{1} has been disconnected due to {2}.'.format(self.__host__, self.__port__,msg))
 
 def get_ip():
     if os.name == 'nt':
