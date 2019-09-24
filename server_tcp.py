@@ -1,6 +1,7 @@
 import os
 import sys
 import json
+import time
 import socket
 import logging
 import threading
@@ -12,6 +13,7 @@ class PeerServer():
         self.__host__ = get_ip()
         self.__port__ = 5000
         self.__close_flag__ = False
+        self.__nodesIn__ = []
         self.timeout = 20
         self.start()
 
@@ -27,7 +29,10 @@ class PeerServer():
             try:
                 peer_socket, peer_addr = self.__sock__.accept()
                 with peer_socket:
-                    new_peer = PeerNode(self.__host__, peer_socket, peer_addr)
+                    new_inbound_peer = PeerNode(self.__host__, peer_socket, peer_addr)
+                    new_inbound_peer.start()
+                    self.__nodesIn__.append(new_inbound_peer)
+                    self.close_server_connection('test close inbounds')
             except socket.timeout:
                 self.close_server_connection('timeout')
 
@@ -39,35 +44,41 @@ class PeerServer():
         logging.info('Server closed his connection due to ' + msg)
         sys.exit(0)
 
+    def close_connected_nodes(self):
+        for nodes in self.__nodesIn__:
+            nodes.close_connection('PeerServer request')
+
 class PeerNode(threading.Thread):
     def __init__(self, serverHost, sock, addr):
+        super(PeerNode, self).__init__()
         self.__serverHost__ = serverHost
         self.__sock__ = sock
         self.__host__ = addr[0]
         self.__port__ = addr[1]
         self.__buffer__ = ""
         self.__close_flag__ = False
+        self.timeout = 20
 
         logging.info('Server connected to PeerNode: {0}:{1}.'.format(self.__host__, self.__port__))
-        self.run()
 
     def run(self):
-        self.__sock__.settimeout(10)
-        packets = self.__sock__.recv(1024)
-        self.send(packets)
-        self.close_connection('finished run')
-        # while not self.__close_flag__:
+        while not self.__close_flag__:
+            try:
+                packets = self.__sock__.recv(1024)
+                self.send(packets)
+                time.sleep(2)
+            except socket.timeout:
+                self.close_connection('timeout')
         #     packets = ""
         #     try:
         #         packets = self.__sock__.recv(1024)
         #         packets = packets.encode('utf-8')
-        #     except socket.timeout:
-        #         self.close_connection('timeout')
+
         #
         #     if packets != "":
         #         try:
         #             self.__buffer__ += packets
-
+        self.close_connection('finished run')
 
     def send(self, data):
         self.__sock__.sendall(data)
