@@ -12,13 +12,14 @@ class PeerServer():
         self.__host__ = get_ip()
         self.__port__ = 5000
         self.__close_flag__ = False
+        self.timeout = 20
         self.start()
 
     def start(self):
         self.__sock__ = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.__sock__.bind(('', self.__port__))
         self.__sock__.listen()
-        self.__sock__.settimeout(10.0)
+        self.__sock__.settimeout(self.timeout)
         logging.info('PeerServer is waiting for income connections.')
 
     def run(self):
@@ -27,9 +28,6 @@ class PeerServer():
                 peer_socket, peer_addr = self.__sock__.accept()
                 with peer_socket:
                     new_peer = PeerNode(self.__host__, peer_socket, peer_addr)
-                    data = peer_socket.recv(1024)
-                    new_peer.send(data)
-                    new_peer.close_connection()
             except socket.timeout:
                 self.close_server_connection('timeout')
 
@@ -50,8 +48,8 @@ class PeerNode(threading.Thread):
         self.__buffer__ = ""
         self.__close_flag__ = False
 
+        logging.info('Server connected to PeerNode: {0}:{1}.'.format(self.__host__, self.__port__))
         self.run()
-        logging.info('Server connected to: {0}:{1}.'.format(self.__host__, self.__port__))
 
     def run(self):
         self.__sock__.settimeout(10)
