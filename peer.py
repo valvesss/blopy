@@ -164,7 +164,7 @@ class PeerConnection(threading.Thread):
             sys.exit(0)
 
     def run(self):
-        self.sock.settimeout(50.0)
+        self.sock.settimeout(10.0)
         logging.info('Client {0} is ready to receive packets'.format(self.host))
         while not self.stop_flag:
             packets = ""
