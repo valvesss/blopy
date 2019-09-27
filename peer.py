@@ -11,7 +11,6 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s :: %(levelname)s :: 
 class PeerServer(threading.Thread):
     def __init__(self, host, port):
         super(PeerServer, self).__init__()
-        # self.__host__ = get_ip()
         self.__host__ = host
         self.__port__ = port
         self.__stop_flag__ = threading.Event()
@@ -27,25 +26,27 @@ class PeerServer(threading.Thread):
         self.__sock__.settimeout(self.timeout)
         logging.info('PeerServer is waiting for income connections.')
 
-    def send_to_nodes(self):
+    def send_to_nodes(self, data=None):
         if self.__nodesIn__:
             for node in self.__nodesIn__:
-                node.send()
-        else:
-            logging.info('There are no InboundNodes! Sending message to nodes failed.')
+                node.send(data)
+
+        if self.__nodesOut__:
+            for node in self.__nodesOut__:
+                node.send(data)
 
     def connect_with_peer(self, host, port):
         if self.validate_new_peer_connection(host, port):
             index = len(self.__nodesOut__)
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                try:
-                        sock.connect((host, port))
-                        outbound_peer = PeerNode(self.__host__, sock, (host, port), index, 'Out')
-                except socket.timeout:
-                    self.close_server_connection('timeout')
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            try:
+                sock.connect((host, port))
+            except socket.timeout:
+                self.close_server_connection('timeout')
 
-                except Exception as error:
-                    logging.critical("Server could not connect to OutPeer: {0} \nError: {1}".format(host,error))
+            except Exception as error:
+                logging.critical("Server could not connect to OutPeer: {0} \nError: {1}".format(host,error))
+            outbound_peer = PeerNode(self.__host__, sock, (host, port), index, 'Out')
             outbound_peer.start()
             self.__nodesOut__.append(outbound_peer)
             logging.info('Server connected to OutPeer: #{0} {1}:{2}.'.format(index,host,port))
@@ -53,14 +54,18 @@ class PeerServer(threading.Thread):
     def validate_new_peer_connection(self, host, port):
         if host == self.__host__ and port == self.__port__:
             logging.error('Server cannot connect to own host!')
+            return False
 
         for node in self.__nodesOut__:
             if node.__host__ == host and node.__port__ == port:
                 logging.critical('Already connected with this Outpeer!')
+                return False
 
         for node in self.__nodesIn__:
             if node.__host__ == host and node.__port__ == port:
                 logging.critical('Already connected with this Inpeer!')
+                return False
+        return True
 
     def close_server_connection(self, msg):
         if not self.__stop_flag__.is_set():
@@ -131,51 +136,33 @@ class PeerNode(threading.Thread):
             if packets != "":
                 try:
                     self.__buffer__ += packets
-                    logging.info('Server received a message from {0}Peer #{1}.'.format(self.type,self.index))
+                    logging.info('Server received a message from {0}Peer #{1}. \nContent:{2}'.format(self.type,self.index,self.__buffer__))
                 except:
                     logging.info('{0}Peer #{1}: Error decoding message: {2}{3}'.format(self.type,self.index,packets,type(packets)))
                     self.stop()
-
         self.close_connection('finished run')
 
-    def send(self):
-        for i in range(5):
-            if not self.__stop_flag__.is_set():
+    def send(self, data=None):
+        if not self.__stop_flag__.is_set():
+            if not data:
                 if self.__buffer__:
                     data = self.__buffer__
-                    data = data.encode('ascii')
-                    try:
-                        self.__sock__.sendall(data)
-                    except Exception as err:
-                        logging.info('Server failed to sent a message to {0}Peer: #{1}. \nError: {1}'.format(self.type,self.index,err))
-                    logging.info('Server sent a message to {0}Peer: #{1}.'.format(self.type,self.index))
-                    self.close_connection('message sent')
-                    return False
                 else:
-                    logging.error('Server has no buffer! Send message to {0}Peer #{1} failed. Try: {2}'.format(self.type,self.index,i+1))
-                    time.sleep(1)
-            else:
-                logging.error('Could not sent message! {0}Peer #{1} already shut down!'.format(self.type,self.index))
+                    logging.error('Server has no buffer nor data to sent! Send message to {0}Peer #{1} failed.'.format(self.type,self.index))
+                    return False
+            if isinstance(data, str):
+                data = data.encode('ascii')
+            try:
+                self.__sock__.sendall(data)
+            except Exception as err:
+                logging.info('Server failed to sent a message to {0}Peer: #{1}. \nError: {2}'.format(self.type,self.index,err))
+                return False
+        else:
+            logging.error('Could not sent message! {0}Peer #{1} already shut down!'.format(self.type,self.index))
+        logging.info('Server sent a message to {0}Peer: #{1}.'.format(self.type,self.index))
 
     def close_connection(self, msg):
         if not self.__stop_flag__.is_set():
             self.stop()
             logging.info('{0}Peer #{1} has been disconnected due to {2}.'.format(self.type,self.index,msg))
             self.__sock__.close()
-
-
-# def get_ip():
-#     if os.name == 'nt':
-#         hostname = socket.gethostname()
-#         ip = socket.gethostbyname(hostname)
-#     elif os.name == 'posix':
-#         netifaces.ifaddresses('enp0s3')
-#         ip = netifaces.ifaddresses('enp0s3')[netifaces.AF_INET][0]['addr']
-#     return ip
-#
-# if __name__ == '__main__':
-#     peer = PeerServer()
-#     try:
-#         peer.start()
-#     except KeyboardInterrupt:
-#         peer.close_server_connection('KeyboardInterrupt')
