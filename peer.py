@@ -16,7 +16,7 @@ class PeerServer(threading.Thread):
         self._stop_flag_ = threading.Event()
         self._nodesIn_ = []
         self._nodesOut_ = []
-        self.timeout = 20
+        self.timeout = 5
         self.scale_up()
 
     def scale_up(self):
@@ -113,9 +113,9 @@ class PeerNode(threading.Thread):
         self._port_ = addr[1]
         self.index = index
         self.type = type
-        self._buffer_ = ""
+        self._buffer_ = []
         self._stop_flag_ = threading.Event()
-        self.timeout = 20
+        self.timeout = 5
         self._sock_.settimeout(self.timeout)
 
     def stop(self):
@@ -124,27 +124,40 @@ class PeerNode(threading.Thread):
 
     def run(self):
         while not self._stop_flag_.is_set():
-            packets = ""
+            data = ""
             try:
-                packets = self._sock_.recv(1024)
+                data = self._sock_.recv(1024)
             except socket.timeout:
                 self.close_connection('timeout')
             except Exception as err:
                 pass
-            if packets:
-                message_decoded = self.decode_packets(packets)
-                self._buffer_ += message_decoded
+            if data:
+                message_decoded = self.decode_data(data)
+                self._buffer_.append(message_decoded)
                 logging.info('Server received a message from {0}Peer #{1}'.format(self.type,self.index))
+                # In use to debug
                 logging.info('Content received: {0}'.format(message_decoded))
         self.close_connection('finished run')
 
-    def decode_packets(self, packets):
+    def decode_data(self, data):
         try:
-            packets = packets.decode('ascii')
+            data = data.decode('ascii')
         except Exception as err:
             logging.info('{0}Peer #{1}: Error decoding message'.format(self.type,self.index))
-            packets = ""
-        return packets
+            data = ""
+        if len(data) > 20:
+            data = json.loads(data)
+        return data
+
+    def encode_data(self,data):
+        if isinstance(data, str):
+            return data.encode('ascii')
+        elif isinstance(data, dict):
+            json_dumped = json.dumps(data, sort_keys=True)
+            return json_dumped.encode('ascii')
+        else:
+            logging.critical('Data could not be encoded! Try again.')
+            return False
 
     def send(self, data=None):
         if not self._stop_flag_.is_set():
@@ -154,8 +167,9 @@ class PeerNode(threading.Thread):
                 else:
                     logging.error('Server has no buffer nor data to sent! Send message to {0}Peer #{1} failed.'.format(self.type,self.index))
                     return False
-            if isinstance(data, str):
-                data = data.encode('ascii')
+            data = self.encode_data(data)
+            if not data:
+                return False
             try:
                 self._sock_.sendall(data)
             except Exception as err:

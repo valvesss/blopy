@@ -15,23 +15,23 @@ The application was made to run by third part, so use it with a client.
 
 1) Starting a node (In one terminal)
 
-> node1 = PeerServer('localhost', 5000)
+> bob = PeerServer('localhost', 5000)
 
-> node1.start()
+> bob.start()
 
 2) Starting other node (In other terminal)
 
-> node2 = PeerServer('localhost', 6000)
+> alice = PeerServer('localhost', 6000)
 
-> node2.start()
+> alice.start()
 
 3) Connecting to other nodes:
 
-> node1.connect_with_peer('localhost', 6000)
+> bob.connect_with_peer('localhost', 6000)
 
 4) Sending messages:
 
-> node1.send_to_nodes('Jhonny')
+> bob.send_to_nodes('Hello World')
 
 # TODO LIST
 
