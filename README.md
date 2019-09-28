@@ -35,9 +35,9 @@ The application was made to run by third part, so use it with a client.
 
 # TODO LIST
 
+- Send blocks to other nodes (json-like) (Actual moving)
 - Consensus
 - Integrate blockchain with peer
-- Send blocks to other nodes (json-like)
 - Validate blocks in all nodes
 - More...
 
