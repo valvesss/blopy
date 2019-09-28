@@ -29,9 +29,27 @@ The application was made to run by third part, so use it with a client.
 
 > bob.connect_with_peer('localhost', 6000)
 
-4) Sending messages:
+4) Sending string-like messages:
 
 > bob.send_to_nodes('Hello World')
+
+5) Sending JSON-like messages:
+
+> block = {
+
+>    'index': '0',
+
+>    'timestamp': '20190928',
+
+>    'transaction': 'Hello World',
+
+>    'nonce': '0',
+
+>     'previous_hash': 'IMAPREVIOUSHASH'
+
+> }
+
+> bob.send_to_nodes(block)
 
 # TODO LIST
 
