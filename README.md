@@ -45,7 +45,7 @@ The application was made to run by third part, so use it with a client.
 
 >    'nonce': '0',
 
->     'previous_hash': 'IMAPREVIOUSHASH'
+>    'previous_hash': 'IMAPREVIOUSHASH'
 
 > }
 
