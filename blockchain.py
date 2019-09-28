@@ -67,24 +67,6 @@ class Blockchain:
         return (block_hash.startswith('0' * Blockchain.pow_difficulty) and
                 block_hash == block.compute_hash())
 
-    # @classmethod
-    # def check_chain_validity(cls, chain):
-    #     result = True
-    #     previous_hash = "0"
-    #
-    #     for block in chain:
-    #         block_hash = block.hash
-    #         delattr(block, "hash")
-    #
-    #         if not cls.is_valid_proof(block, block.hash) or \
-    #                 previous_hash != block.previous_hash:
-    #             result = False
-    #             break
-    #
-    #         block.hash, previous_hash = block_hash, block_hash
-    #
-    #     return result
-
     def mine(self):
         if not self.unconfirmed_transactions:
             logging.fatal('There are no transactions to mine!')
@@ -119,6 +101,6 @@ def new_transaction():
 
 blockchain = Blockchain()
 blockchain.create_genesis_block()
-# new_transaction()
-# blockchain.mine()
-# [pprint(block.__dict__) for block in blockchain.chain]
+new_transaction()
+blockchain.mine()
+[pprint(block.__dict__) for block in blockchain.chain]
