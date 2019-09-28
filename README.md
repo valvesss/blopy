@@ -9,17 +9,17 @@ premise says: "if the node found has a large chain, it adapts to it".
 
 The application was made to run by third part, so use it with a client.
 
-Client example:
+- Client example:
 
 > from peer import *
 
-1) Starting a node
+1) Starting a node (In one terminal)
 
 > node1 = PeerServer('localhost', 5000)
 
 > node1.start()
 
-2) Starting other node
+2) Starting other node (In other terminal)
 
 > node2 = PeerServer('localhost', 6000)
 
