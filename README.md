@@ -1,10 +1,10 @@
 # BlockchainPython
 
-BlockchainPython is a library that provides a full self blockchain node. It
+Blockchain Python is a library that provides a full self blockchain node. It
 handles P2P connections, immutable-ledger, cryptography, consensus protocol and
 mining functions.
 
-Each node runs indenpendently until find other nodes in the network. As the
+Each node runs independently until find other nodes in the network. As the
 premise says: "if the node found has a large chain, it adapts to it".
 
 The application was made to run by third part, so use it with a client.
