@@ -11,17 +11,23 @@ The application was made to run by third part, so use it with a client.
 
 Client example:
 
-1) Starting the server
-
 > from peer import *
+
+1) Starting a node
+
 > node1 = PeerServer('localhost', 5000)
 > node1.start()
 
-2) Connecting to other nodes:
+2) Starting other node
+
+> node2 = PeerServer('localhost', 6000)
+> node2.start()
+
+3) Connecting to other nodes:
 
 > node1.connect_with_peer('localhost', 6000)
 
-3) Sending messages:
+4) Sending messages:
 
 > node1.send_to_nodes('Jhonny')
 
