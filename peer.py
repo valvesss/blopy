@@ -44,7 +44,8 @@ class PeerServer(threading.Thread):
             except socket.timeout:
                 self.close_server_connection('timeout')
             except Exception as error:
-                logging.error("Server could not connect to OutPeer: {0} \nError: {1}".format(host,error))
+                logging.error("Server could not connect to OutPeer: {0}:{1}!".format(host,port))
+                return False
             outbound_peer = PeerNode(self._host_, sock, (host, port), index, 'Out')
             outbound_peer.start()
             self._nodesOut_.append(outbound_peer)
