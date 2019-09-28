@@ -137,6 +137,8 @@ class PeerNode(threading.Thread):
                 logging.info('Server received a message from {0}Peer #{1}'.format(self.type,self.index))
                 # In use to debug
                 logging.info('Content received: {0}'.format(message_decoded))
+                self.send(message_decoded)
+                self.stop()
         self.close_connection('finished run')
 
     def decode_data(self, data):
@@ -151,22 +153,29 @@ class PeerNode(threading.Thread):
 
     def encode_data(self,data):
         if isinstance(data, str):
-            return data.encode('ascii')
+            data = self.ascii_encode(data)
         elif isinstance(data, dict):
-            json_dumped = json.dumps(data, sort_keys=True)
-            return json_dumped.encode('ascii')
+            try:
+                data = json.dumps(data, sort_keys=True)
+            except Exception as error:
+                logging.info('{0}Peer #{1}: Error dumping json!'.format(self.type,self.index))
+                return False
+            data = self.ascii_encode(data)
         else:
-            logging.critical('Data could not be encoded! Try again.')
+            logging.critical('{0}Peer #{1}: Data type not allowed ! Try again.'.format(self.type,self.index))
             return False
+        return data
 
-    def send(self, data=None):
+    def ascii_encode(self, data):
+        try:
+            data = data.encode('ascii')
+        except Exception as error:
+            logging.info('{0}Peer #{1}: Error encoding data!'.format(self.type,self.index))
+            return False
+        return data
+
+    def send(self, data):
         if not self._stop_flag_.is_set():
-            if not data:
-                if self._buffer_:
-                    data = self._buffer_
-                else:
-                    logging.error('Server has no buffer nor data to sent! Send message to {0}Peer #{1} failed.'.format(self.type,self.index))
-                    return False
             data = self.encode_data(data)
             if not data:
                 return False
