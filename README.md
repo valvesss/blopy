@@ -16,11 +16,13 @@ Client example:
 1) Starting a node
 
 > node1 = PeerServer('localhost', 5000)
+
 > node1.start()
 
 2) Starting other node
 
 > node2 = PeerServer('localhost', 6000)
+
 > node2.start()
 
 3) Connecting to other nodes:
@@ -30,5 +32,13 @@ Client example:
 4) Sending messages:
 
 > node1.send_to_nodes('Jhonny')
+
+# TODO LIST
+
+- Consensus
+- Integrate blockchain with peer
+- Send blocks to other nodes (json-like)
+- Validate blocks in all nodes
+- More...
 
 Enjoy!
