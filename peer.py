@@ -16,7 +16,7 @@ class PeerServer(threading.Thread):
         self._stop_flag_ = threading.Event()
         self._nodesIn_ = []
         self._nodesOut_ = []
-        self.timeout = 5
+        self.timeout = 10
         self.scale_up()
 
     def scale_up(self):
@@ -92,15 +92,15 @@ class PeerServer(threading.Thread):
 
     def run(self):
         while not self._stop_flag_.is_set():
+            index = len(self._nodesIn_)
             try:
                 peer_socket, peer_addr = self._sock_.accept()
-                index = len(self._nodesIn_)
-                inbound_peer = PeerNode(self._host_, peer_socket, peer_addr, index, 'In')
-                inbound_peer.start()
-                logging.info('Server connected to InPeer: #{0} {1}:{2}.'.format(index,peer_addr[0],peer_addr[1]))
-                self._nodesIn_.append(inbound_peer)
             except socket.timeout:
                 self.close_server_connection('timeout')
+            inbound_peer = PeerNode(self._host_, peer_socket, peer_addr, index, 'In')
+            inbound_peer.start()
+            logging.info('Server connected to InPeer: #{0} {1}:{2}.'.format(index,peer_addr[0],peer_addr[1]))
+            self._nodesIn_.append(inbound_peer)
 
         self.close_server_connection('finished run.')
 
@@ -115,7 +115,7 @@ class PeerNode(threading.Thread):
         self.type = type
         self._buffer_ = []
         self._stop_flag_ = threading.Event()
-        self.timeout = 5
+        self.timeout = 10
         self._sock_.settimeout(self.timeout)
 
     def stop(self):
