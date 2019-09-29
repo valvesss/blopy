@@ -5,8 +5,6 @@ import datetime
 from pprint import pprint
 from hashlib import sha256
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s :: %(levelname)s :: %(message)s')
-
 class Block:
     def __init__(self, index, transactions, timestamp, previous_hash, nonce=0):
         self.index = index
@@ -76,7 +74,7 @@ class Blockchain:
 
         new_block = Block(index=last_block.index + 1,
                           transactions=self.unconfirmed_transactions,
-                          timestamp=time.time(),
+                          timestamp=str(datetime.datetime.now()),
                           previous_hash=last_block.hash)
 
         proof = self.proof_of_work(new_block)
@@ -85,22 +83,16 @@ class Blockchain:
         logging.info('Unconfirmed transactions list set empty')
         return new_block.index
 
-def new_transaction():
-    tx_data = {'author': 'author_test', 'content': 'content_test'}
-    required_fields = ["author", "content"]
+    def new_transaction(self):
+        tx_data = {'author': 'author_test', 'content': 'content_test'}
+        required_fields = ["author", "content"]
 
-    for field in required_fields:
-        if not tx_data.get(field):
-            logging.error('The transaction data is invalid')
-            return False
+        for field in required_fields:
+            if not tx_data.get(field):
+                logging.error('The transaction data is invalid')
+                return False
 
-    tx_data["timestamp"] = str(datetime.datetime.now())
+        tx_data["timestamp"] = str(datetime.datetime.now())
 
-    blockchain.add_new_transaction(tx_data)
-    logging.info('A new transaction was made')
-
-blockchain = Blockchain()
-blockchain.create_genesis_block()
-new_transaction()
-blockchain.mine()
-[pprint(block.__dict__) for block in blockchain.chain]
+        self.add_new_transaction(tx_data)
+        logging.info('A new transaction was made')
