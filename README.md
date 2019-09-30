@@ -1,6 +1,6 @@
 # blopy
 
-Blopy is a library that provides a full self blockchain node. It
+Blopy is a python library that provides a full self blockchain node. It
 handles P2P connections, immutable-ledger, cryptography, consensus protocol and
 mining functions.
 
@@ -35,7 +35,7 @@ The application was made to run by third part, so use it with a client.
 
 > bob.send_to_nodes('Hello World')
 
-5) Sending JSON-like messages:
+5) Sending JSON-like messages (now using blockchain functions):
 
 > bk = Blockchain()
 
@@ -45,7 +45,7 @@ The application was made to run by third part, so use it with a client.
 
 > bk.mine()
 
-> last_block = bk.last_block.__dict__
+> last_block = bk.last_block.\__dict__
 
 > bob.send_to_nodes(last_block)
 
