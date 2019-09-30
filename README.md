@@ -45,7 +45,7 @@ The application was made to run by third part, so use it with a client.
 
 > bk.mine()
 
-> last_block = bk.last_block.\__dict__
+> last_block = bk.last_block.\_\_dict\_\_
 
 > bob.send_to_nodes(last_block)
 
