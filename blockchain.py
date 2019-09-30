@@ -17,6 +17,7 @@ class Block:
         block_string = json.dumps(self.__dict__, sort_keys=True)
         return sha256(block_string.encode()).hexdigest()
 
+
 class Blockchain:
     pow_difficulty = 2
 
@@ -29,6 +30,7 @@ class Blockchain:
         genesis_block.hash = genesis_block.compute_hash()
         self.chain.append(genesis_block)
         logging.info('Genesis block created')
+
 
     @property
     def last_block(self):
@@ -48,6 +50,7 @@ class Blockchain:
         self.chain.append(block)
         return True
 
+
     def proof_of_work(self, block):
         block.nonce = 0
 
@@ -59,6 +62,7 @@ class Blockchain:
 
     def add_new_transaction(self, transaction):
         self.unconfirmed_transactions.append(transaction)
+
 
     @classmethod
     def is_valid_proof(cls, block, block_hash):
@@ -82,6 +86,7 @@ class Blockchain:
         self.unconfirmed_transactions = []
         logging.info('Unconfirmed transactions list set empty')
         return new_block.index
+
 
     def new_transaction(self):
         tx_data = {'author': 'author_test', 'content': 'content_test'}
