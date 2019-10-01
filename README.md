@@ -49,6 +49,13 @@ The application was made to run by third part, so use it with a client.
 
 > bob.send_to_nodes(last_block)
 
+- Tests:
+
+To test the application, simple execute:
+
+> python -m unittest -v test_server
+
+
 # TO-DO LIST
 
 - Integrate blockchain with peer (Actual moving)
