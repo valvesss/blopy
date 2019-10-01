@@ -84,7 +84,8 @@ class Blockchain:
                           previous_hash=last_block.hash)
 
         proof = self.proof_of_work(new_block)
-        self.add_block(new_block, proof)
+        if not self.add_block(new_block, proof):
+            return False
         self.unconfirmed_transactions = []
         logging.info('Blockchain: Unconfirmed transactions list set empty.')
         return new_block.index
@@ -109,19 +110,19 @@ def validate_block_fields(block):
         return False
 
     if not (block.transactions and isinstance(block.transactions, list)):
-        logging.info('Blockchain: Block #{0} transactions is not a List!.'.format(block.transactions))
+        logging.info('Blockchain: Block #{0} transactions is not a List!.'.format(block.index))
         return False
 
     if not (block.timestamp and isinstance(block.timestamp, str)):
-        logging.info('Blockchain: Block #{0} timestamp is not a String!.'.format(block.timestamp))
+        logging.info('Blockchain: Block #{0} timestamp is not a String!.'.format(block.index))
         return False
 
-    if not (block.previous_hash and isinstance(block.previous_hash, int)):
-        logging.info('Blockchain: Block #{0} previous hash is not equal to the previous block hash!.'.format(block.previous_hash))
+    if not (block.previous_hash and isinstance(block.previous_hash, str)):
+        logging.info('Blockchain: Block #{0} previous hash is not equal to the previous block hash!'.format(block.index))
         return False
 
     if not (block.nonce and isinstance(block.nonce, int)):
-        logging.info('Blockchain: Block #{0} nonce is not an Integer!.'.format(block.nonce))
+        logging.info('Blockchain: Block #{0} nonce is not an Integer!.'.format(block.index))
         return False
 
     return True
