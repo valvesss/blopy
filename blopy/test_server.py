@@ -5,7 +5,7 @@ class TestServer(unittest.TestCase):
     def setUp(self):
         pass
 
-    def test_server_start(self):
+    def test_start(self):
         server = Server('localhost', 3000, 1)
         try:
             server.start()
@@ -13,7 +13,7 @@ class TestServer(unittest.TestCase):
             print("Test server start error! Check this:\nError:{0}".format(error))
         server.join()
 
-    def test_server_connect_with_peer(self):
+    def test_connect_with_peer(self):
         server = Server('localhost', 3000, 2)
         server.start()
         server2 = Server('localhost', 4000, 2)

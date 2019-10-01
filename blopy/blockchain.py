@@ -34,16 +34,15 @@ class Blockchain:
     def last_block(self):
         return self.chain[-1]
 
-    def add_block(self, block, proof):
+    def add_block(self, block, proof): # will be inintialized inside the mine function
         if not validate_block_fields(block):
             logging.info('Blockchain: Block #{} is not valid!.'.format(block.index))
             return False
-        previous_hash = self.last_block.hash
 
-        if previous_hash != block.previous_hash:
+        if not self.is_valid_proof(block, proof):
             return False
 
-        if not Blockchain.is_valid_proof(block, proof):
+        if not self.validate_previous_hash(block):
             return False
 
         block.hash = proof
@@ -51,10 +50,18 @@ class Blockchain:
         self.chain.append(block)
         return True
 
+    def is_valid_proof(self, block, block_hash):
+        return (block_hash.startswith('0' * self.pow_difficulty) and
+                block_hash == block.compute_hash())
+
+    def validate_previous_hash(self, block):
+        previous_hash = self.last_block.hash
+        if not previous_hash == block.previous_hash:
+            return False
+        return True
 
     def proof_of_work(self, block):
         block.nonce = 0
-
         computed_hash = block.compute_hash()
         while not computed_hash.startswith('0' * Blockchain.pow_difficulty):
             block.nonce += 1
@@ -64,29 +71,25 @@ class Blockchain:
     def add_new_transaction(self, transaction):
         self.unconfirmed_transactions.append(transaction)
 
-    @classmethod
-    def is_valid_proof(cls, block, block_hash):
-        return (block_hash.startswith('0' * Blockchain.pow_difficulty) and
-                block_hash == block.compute_hash())
-
     def mine(self):
         if not self.unconfirmed_transactions:
             logging.info('Blockchain: There are no transactions to mine!')
             return False
 
-        last_block = self.last_block
-
-        new_block = Block(index=last_block.index + 1,
-                          transactions=self.unconfirmed_transactions,
-                          timestamp=str(datetime.datetime.now()),
-                          previous_hash=last_block.hash)
-
+        new_block = self.create_new_block()
         proof = self.proof_of_work(new_block)
         if not self.add_block(new_block, proof):
             return False
         self.unconfirmed_transactions = []
         logging.info('Blockchain: Unconfirmed transactions list set empty.')
         return new_block.index
+
+    def create_new_block(self):
+        last_block = self.last_block
+        return Block(last_block.index + 1,
+                     self.unconfirmed_transactions,
+                     str(datetime.datetime.now()),
+                     last_block.hash)
 
     def new_transaction(self, data):
         required_fields = ["company_name", "company_data"]
