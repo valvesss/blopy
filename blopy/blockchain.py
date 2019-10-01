@@ -36,7 +36,6 @@ class Blockchain:
 
     def add_block(self, block, proof): # will be inintialized inside the mine function
         if not validate_block_fields(block):
-            logging.info('Blockchain: Block #{} is not valid!.'.format(block.index))
             return False
 
         if not self.is_valid_proof(block, proof):
@@ -44,9 +43,10 @@ class Blockchain:
 
         if not self.validate_previous_hash(block):
             return False
+
         block.hash = proof
-        logging.info('Blockchain: Block #{} was inserted in the chain.'.format(block.index))
         self.chain.append(block)
+        logging.info('Blockchain: Block #{} was inserted in the chain.'.format(block.index))
         return True
 
     def is_valid_proof(self, block, block_hash):
