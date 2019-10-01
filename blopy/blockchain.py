@@ -17,8 +17,6 @@ class Block:
         block_string = json.dumps(self.__dict__, sort_keys=True)
         return sha256(block_string.encode()).hexdigest()
 
-
-
 class Blockchain:
     pow_difficulty = 2
 
@@ -90,7 +88,6 @@ class Blockchain:
         logging.info('Blockchain: Unconfirmed transactions list set empty.')
         return new_block.index
 
-
     def new_transaction(self, data):
         required_fields = ["company_name", "company_data"]
 
@@ -124,5 +121,4 @@ def validate_block_fields(block):
     if not (block.nonce and isinstance(block.nonce, int)):
         logging.info('Blockchain: Block #{0} nonce is not an Integer!.'.format(block.index))
         return False
-
     return True

@@ -60,7 +60,6 @@ To test the application, simple execute:
 
 - Integrate blockchain with peer (Actual moving)
 - Store data from node into Server
-- Validate blocks in all nodes
 - Integrated Consensus
 - More...
 
