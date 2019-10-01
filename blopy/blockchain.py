@@ -18,11 +18,10 @@ class Block:
         return sha256(block_string.encode()).hexdigest()
 
 class Blockchain:
-    pow_difficulty = 2
-
     def __init__(self):
         self.unconfirmed_transactions = []
         self.chain = []
+        self.pow_difficulty = 2
 
     def create_genesis_block(self):
         genesis_block = Block(0, [], str(datetime.datetime.now()), "0")
@@ -62,7 +61,7 @@ class Blockchain:
     def proof_of_work(self, block):
         block.nonce = 0
         computed_hash = block.compute_hash()
-        while not computed_hash.startswith('0' * Blockchain.pow_difficulty):
+        while not computed_hash.startswith('0' * self.pow_difficulty):
             block.nonce += 1
             computed_hash = block.compute_hash()
         return computed_hash
