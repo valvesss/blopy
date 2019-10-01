@@ -10,14 +10,14 @@ import threading
 logging.basicConfig(level=logging.INFO, format='%(asctime)s :: %(levelname)s :: %(message)s')
 
 class Server(threading.Thread):
-    def __init__(self, host, port):
+    def __init__(self, host, port, timeout):
         super(Server, self).__init__()
         self._host_ = host
         self._port_ = port
         self._stop_flag_ = threading.Event()
         self._nodesIn_ = []
         self._nodesOut_ = []
-        self.timeout = 10
+        self.timeout = timeout
         self.scale_up()
 
     def scale_up(self):
