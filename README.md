@@ -17,13 +17,13 @@ The application was made to run by third part, so use it with a client.
 
 1) Starting a node (In one terminal)
 
-> bob = Server('localhost', 5000)
+> bob = Server('localhost', 5000, 10)
 
 > bob.start()
 
 2) Starting other node (In other terminal)
 
-> alice = Server('localhost', 6000)
+> alice = Server('localhost', 6000, 10)
 
 > alice.start()
 
