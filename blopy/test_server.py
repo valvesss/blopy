@@ -7,10 +7,7 @@ class TestServer(unittest.TestCase):
 
     def test_start(self):
         server = Server('localhost', 3000, 1)
-        try:
-            server.start()
-        except Exception as error:
-            print("Test server start error! Check this:\nError:{0}".format(error))
+        server.start()
         server.join()
 
     def test_connect_with_peer(self):
@@ -18,10 +15,7 @@ class TestServer(unittest.TestCase):
         server.start()
         server2 = Server('localhost', 4000, 2)
         server2.start()
-        try:
-            server.connect_with_peer('localhost', 4000)
-        except Exception as error:
-            print("Test server connect_with_peer error! Check this:\nError:{0}".format(error))
+        server.connect_with_peer('localhost', 4000)
         server.join()
         server2.join()
 
