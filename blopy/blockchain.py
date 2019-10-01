@@ -33,7 +33,7 @@ class Blockchain:
     def last_block(self):
         return self.chain[-1]
 
-    def add_block(self, block, proof): # will be inintialized inside the mine function
+    def add_block(self, block, proof):
         if not validate_block_fields(block):
             return False
 
@@ -62,8 +62,8 @@ class Blockchain:
         block.nonce = 0
         computed_hash = block.compute_hash()
         while not computed_hash.startswith('0' * self.pow_difficulty):
-            block.nonce += 1
             computed_hash = block.compute_hash()
+            block.nonce += 1
         return computed_hash
 
     def add_new_transaction(self, transaction):
