@@ -18,6 +18,7 @@ class Block:
         return sha256(block_string.encode()).hexdigest()
 
 
+
 class Blockchain:
     pow_difficulty = 2
 
@@ -29,14 +30,16 @@ class Blockchain:
         genesis_block = Block(0, [], str(datetime.datetime.now()), "0")
         genesis_block.hash = genesis_block.compute_hash()
         self.chain.append(genesis_block)
-        logging.info('Genesis block created')
-
+        logging.info('Blockchain: genesis block created.')
 
     @property
     def last_block(self):
         return self.chain[-1]
 
     def add_block(self, block, proof):
+        if not validate_block_fields(block):
+            logging.info('Blockchain: Block #{} is not valid!.'.format(block.index))
+            return False
         previous_hash = self.last_block.hash
 
         if previous_hash != block.previous_hash:
@@ -46,7 +49,7 @@ class Blockchain:
             return False
 
         block.hash = proof
-        logging.info('Block #{} was inserted in the chain'.format(block.index))
+        logging.info('Blockchain: Block #{} was inserted in the chain.'.format(block.index))
         self.chain.append(block)
         return True
 
@@ -63,7 +66,6 @@ class Blockchain:
     def add_new_transaction(self, transaction):
         self.unconfirmed_transactions.append(transaction)
 
-
     @classmethod
     def is_valid_proof(cls, block, block_hash):
         return (block_hash.startswith('0' * Blockchain.pow_difficulty) and
@@ -71,7 +73,7 @@ class Blockchain:
 
     def mine(self):
         if not self.unconfirmed_transactions:
-            logging.fatal('There are no transactions to mine!')
+            logging.info('Blockchain: There are no transactions to mine!')
             return False
 
         last_block = self.last_block
@@ -84,20 +86,42 @@ class Blockchain:
         proof = self.proof_of_work(new_block)
         self.add_block(new_block, proof)
         self.unconfirmed_transactions = []
-        logging.info('Unconfirmed transactions list set empty')
+        logging.info('Blockchain: Unconfirmed transactions list set empty.')
         return new_block.index
 
 
-    def new_transaction(self):
-        tx_data = {'author': 'author_test', 'content': 'content_test'}
-        required_fields = ["author", "content"]
+    def new_transaction(self, data):
+        required_fields = ["company_name", "company_data"]
 
         for field in required_fields:
-            if not tx_data.get(field):
-                logging.error('The transaction data is invalid')
+            if not data.get(field):
+                logging.error('Blockchain: The transaction data is invalid.')
                 return False
 
-        tx_data["timestamp"] = str(datetime.datetime.now())
+        data["timestamp"] = str(datetime.datetime.now())
 
-        self.add_new_transaction(tx_data)
-        logging.info('A new transaction was made')
+        self.add_new_transaction(data)
+        logging.info('Blockchain: a new transaction was validated')
+
+def validate_block_fields(block):
+    if not (block.index and isinstance(block.index, int)):
+        logging.info('Blockchain: Block #{0} index is Integer!.'.format(block.index))
+        return False
+
+    if not (block.transactions and isinstance(block.transactions, list)):
+        logging.info('Blockchain: Block #{0} transactions is not a List!.'.format(block.transactions))
+        return False
+
+    if not (block.timestamp and isinstance(block.timestamp, str)):
+        logging.info('Blockchain: Block #{0} timestamp is not a String!.'.format(block.timestamp))
+        return False
+
+    if not (block.previous_hash and isinstance(block.previous_hash, int)):
+        logging.info('Blockchain: Block #{0} previous hash is not equal to the previous block hash!.'.format(block.previous_hash))
+        return False
+
+    if not (block.nonce and isinstance(block.nonce, int)):
+        logging.info('Blockchain: Block #{0} nonce is not an Integer!.'.format(block.nonce))
+        return False
+
+    return True

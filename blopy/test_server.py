@@ -25,6 +25,5 @@ class TestServer(unittest.TestCase):
         server.join()
         server2.join()
 
-
 if __name__ == '__main__':
     unittest.main()
