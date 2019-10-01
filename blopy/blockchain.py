@@ -44,7 +44,6 @@ class Blockchain:
 
         if not self.validate_previous_hash(block):
             return False
-
         block.hash = proof
         logging.info('Blockchain: Block #{} was inserted in the chain.'.format(block.index))
         self.chain.append(block)
