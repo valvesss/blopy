@@ -72,9 +72,8 @@ class Server(threading.Thread):
         if not self._stop_flag_.is_set():
             self.stop()
             self.close_connected_nodes()
-            self._sock_.close()
             logging.info('Server: closed his connection due to {}.'.format(msg))
-            sys.exit(0)
+            self._sock_.close()
 
     def close_connected_nodes(self):
         for node in self._nodesIn_:
