@@ -14,7 +14,7 @@ class Node(threading.Thread):
         self.type = type
         self._buffer_ = []
         self._stop_flag_ = threading.Event()
-        self.timeout = 10
+        self.timeout = 5
         self._sock_.settimeout(self.timeout)
 
     def stop(self):

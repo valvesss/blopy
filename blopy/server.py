@@ -36,16 +36,22 @@ class Server(threading.Thread):
             for node in self._nodesOut_:
                 node.send(data)
 
+    def create_new_server_connection(self, host, port):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            sock.connect((host, port))
+        except socket.timeout:
+            self.close_server_connection('timeout')
+        except:
+            logging.error("Server: could not connect to OutPeer: {0}:{1}!".format(host,port))
+            return False
+        return sock
+
     def connect_with_peer(self, host, port):
         if self.validate_new_peer_connection(host, port):
             index = len(self._nodesOut_)
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            try:
-                sock.connect((host, port))
-            except socket.timeout:
-                self.close_server_connection('timeout')
-            except:
-                logging.error("Server: could not connect to OutPeer: {0}:{1}!".format(host,port))
+            sock = self.create_new_server_connection(host, port)
+            if not sock:
                 return False
             outbound_peer = node.Node(self._host_, sock, (host, port), index, 'Out')
             outbound_peer.start()
@@ -74,7 +80,8 @@ class Server(threading.Thread):
             self.close_connected_nodes()
             logging.info('Server: closed his connection due to {}.'.format(msg))
             self._sock_.close()
-
+        sys.exit(1)
+        
     def close_connected_nodes(self):
         for node in self._nodesIn_:
             if not node._stop_flag_.is_set():
