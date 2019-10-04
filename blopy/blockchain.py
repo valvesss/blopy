@@ -27,7 +27,7 @@ class Blockchain:
         genesis_block = Block(0, [], str(datetime.datetime.now()), "Yo I'm Rupert")
         genesis_block.hash = genesis_block.compute_hash()
         self.chain.append(genesis_block)
-        logging.info('Blockchain: genesis block created.')
+        logging.info('Server Blockchain: genesis block created.')
 
     @property
     def last_block(self):
@@ -51,7 +51,7 @@ class Blockchain:
                 block_hash == block.compute_hash()):
             return True
         else:
-            logging.error('Blockchain: Block #{} has no valid proof!.'.format(block.index))
+            logging.error('Server Blockchain: Block #{} has no valid proof!.'.format(block.index))
             return False
 
     def validate_previous_hash(self, block):
@@ -73,7 +73,7 @@ class Blockchain:
 
     def mine(self):
         if not self.unconfirmed_transactions:
-            logging.info('Blockchain: There are no transactions to mine!')
+            logging.info('Server Blockchain: There are no transactions to mine!')
             return False
 
         new_block = self.create_new_block()
@@ -83,7 +83,7 @@ class Blockchain:
             return False
         self.add_block(block)
         self.unconfirmed_transactions = []
-        logging.info('Blockchain: Block #{} was inserted in the chain.'.format(block.index))
+        logging.info('Server Blockchain: Block #{} was inserted in the chain.'.format(block.index))
 
     def add_block(self, block):
         self.chain.append(block)
@@ -100,13 +100,13 @@ class Blockchain:
 
         for field in required_fields:
             if not data.get(field):
-                logging.error('Blockchain: The transaction data is invalid.')
+                logging.error('Server Blockchain: The transaction data is invalid.')
                 return False
 
         data["timestamp"] = str(datetime.datetime.now())
 
         self.add_new_transaction(data)
-        logging.info('Blockchain: a new transaction was validated')
+        logging.info('Server Blockchain: a new transaction was validated')
 
 def serialize_json_block(json_msg):
     return Block(json_msg['index'],
@@ -117,22 +117,22 @@ def serialize_json_block(json_msg):
 
 def validate_block_fields(block):
     if not (block.index and isinstance(block.index, int)):
-        logging.info('Blockchain: Block #{0} index is Integer!.'.format(block.index))
+        logging.info('Server Blockchain: Block #{0} index is Integer!.'.format(block.index))
         return False
 
     if not (block.transactions and isinstance(block.transactions, list)):
-        logging.info('Blockchain: Block #{0} transactions is not a List!.'.format(block.index))
+        logging.info('Server Blockchain: Block #{0} transactions is not a List!.'.format(block.index))
         return False
 
     if not (block.timestamp and isinstance(block.timestamp, str)):
-        logging.info('Blockchain: Block #{0} timestamp is not a String!.'.format(block.index))
+        logging.info('Server Blockchain: Block #{0} timestamp is not a String!.'.format(block.index))
         return False
 
     if not (block.previous_hash and isinstance(block.previous_hash, str)):
-        logging.info('Blockchain: Block #{0} previous hash is not equal to the previous block hash!'.format(block.index))
+        logging.info('Server Blockchain: Block #{0} previous hash is not equal to the previous block hash!'.format(block.index))
         return False
 
     if not (block.nonce and isinstance(block.nonce, int)):
-        logging.info('Blockchain: Block #{0} nonce is not an Integer!.'.format(block.index))
+        logging.info('Server Blockchain: Block #{0} nonce is not an Integer!.'.format(block.index))
         return False
     return True

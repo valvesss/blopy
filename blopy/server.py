@@ -7,6 +7,8 @@ import socket
 import logging
 import threading
 
+from blockchain import Blockchain
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s :: %(levelname)s :: %(message)s')
 
 class Server(threading.Thread):
@@ -17,8 +19,9 @@ class Server(threading.Thread):
         self._stop_flag_ = threading.Event()
         self._nodesIn_ = []
         self._nodesOut_ = []
-        self._chain_ = []
         self.timeout = timeout
+        self.blockchain = Blockchain()
+        # self._chain_ = []
         self.scale_up()
 
     def scale_up(self):

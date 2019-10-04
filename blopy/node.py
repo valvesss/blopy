@@ -3,7 +3,7 @@ import socket
 import logging
 import threading
 
-from blockchain import *
+from blockchain import serialize_json_block
 
 class Node(threading.Thread):
     def __init__(self, server, sock, addr, index, type):
@@ -35,24 +35,18 @@ class Node(threading.Thread):
                 pass
             if data:
                 message_decoded = self.decode_data(data)
-                if not message_decoded:
-                    break
                 self.validate_content_received(message_decoded)
                 self._buffer_.append(message_decoded)
-                logging.info('Node: Server received a message from {0}Peer #{1}'.format(self.type,self.index))
+                # logging.info('Node: Server received a message from {0}Peer #{1}'.format(self.type,self.index))
                 # In use to debug
-                logging.info('Content received: {0}'.format(message_decoded))
+                # logging.info('Content received: {0}'.format(message_decoded))
         self.close_connection('finished run')
 
     def decode_data(self, data):
         try:
-            data = data.decode('ascii')
-        except:
-            logging.info('{0}Peer #{1}: Error decoding message'.format(self.type,self.index))
-            data = ""
-            return False
-        if len(data) > 20:
             data = json.loads(data)
+        except:
+            data = data.decode('ascii')
         return data
 
     def validate_content_received(self, msg):
@@ -60,17 +54,15 @@ class Node(threading.Thread):
             if msg.startswith('FLAG_') and len(msg) == 7:
                 if msg[5:] == '01':
                     self.flag_chain_sync()
-
         elif isinstance(msg, dict):
-            bk = Blockchain()
             block = serialize_json_block(msg)
             # block_valid = bk.validate_block(block, msg['hash'])
-            self._server_._chain_.append(block)
-            pprint(self._server_._chain_[0].__dict__)
+            self._server_.blockchain.chain.append(block)
+            # pprint(self._server_._chain_[0].__dict__)
 
     def flag_chain_sync(self):
         logging.info('{0}Peer #{1}: received a chain sync request'.format(self.type,self.index))
-        logging.info('{0}Peer #{1}: thats my chain size: {2} !!'.format(self.type,self.index, len(self._server_._chain_)))
+        logging.info('{0}Peer #{1}: thats my chain size: {2} !!'.format(self.type,self.index, len(self._server_.blockchain.chain)))
 
     def encode_data(self,data):
         if isinstance(data, str):
@@ -103,11 +95,11 @@ class Node(threading.Thread):
             try:
                 self._sock_.sendall(data)
             except Exception as err:
-                logging.info('Server failed to sent a message to {0}Peer: #{1}. \nError: {2}'.format(self.type,self.index,err))
+                logging.info('Server: failed to sent a message to {0}Peer: #{1}. \nError: {2}'.format(self.type,self.index,err))
                 return False
         else:
-            logging.error('Could not sent message! {0}Peer #{1} already shut down!'.format(self.type,self.index))
-        logging.info('Server sent a message to {0}Peer: #{1}.'.format(self.type,self.index))
+            logging.error('{0}Peer #{1}: Could not sent message! I\'m already shut down!'.format(self.type,self.index))
+        logging.info('Server: sent a message to {0}Peer: #{1}.'.format(self.type,self.index))
 
     def close_connection(self, msg):
         if not self._stop_flag_.is_set():

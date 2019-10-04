@@ -7,12 +7,11 @@ bob.start()
 
 bob.connect_with_peer('localhost', 6000)
 
-bk = Blockchain()
-bk.create_genesis_block()
+bob.blockchain.create_genesis_block()
 data = {'company_name': 'Test', 'company_data': 'New Transaction'}
-bk.new_transaction(data)
-bk.mine()
-last_block = bk.last_block.__dict__
+bob.blockchain.new_transaction(data)
+bob.blockchain.mine()
+last_block = bob.blockchain.last_block.__dict__
 
 bob.send_to_nodes('FLAG_01')
 time.sleep(2)
