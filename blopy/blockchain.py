@@ -24,7 +24,7 @@ class Blockchain:
         self.pow_difficulty = 2
 
     def create_genesis_block(self):
-        genesis_block = Block(0, [], str(datetime.datetime.now()), "0")
+        genesis_block = Block(0, [], str(datetime.datetime.now()), "Yo I'm Rupert")
         genesis_block.hash = genesis_block.compute_hash()
         self.chain.append(genesis_block)
         logging.info('Blockchain: genesis block created.')
@@ -45,12 +45,17 @@ class Blockchain:
 
         block.hash = proof
         self.chain.append(block)
+        self.unconfirmed_transactions = []
         logging.info('Blockchain: Block #{} was inserted in the chain.'.format(block.index))
         return True
 
     def is_valid_proof(self, block, block_hash):
-        return (block_hash.startswith('0' * self.pow_difficulty) and
-                block_hash == block.compute_hash())
+        if (block_hash.startswith('0' * self.pow_difficulty) and
+                block_hash == block.compute_hash()):
+            return True
+        else:
+            logging.error('Blockchain: Block #{} has no valid proof!.'.format(block.index))
+            return False
 
     def validate_previous_hash(self, block):
         previous_hash = self.last_block.hash
@@ -62,8 +67,8 @@ class Blockchain:
         block.nonce = 0
         computed_hash = block.compute_hash()
         while not computed_hash.startswith('0' * self.pow_difficulty):
-            computed_hash = block.compute_hash()
             block.nonce += 1
+            computed_hash = block.compute_hash()
         return computed_hash
 
     def add_new_transaction(self, transaction):
@@ -78,9 +83,6 @@ class Blockchain:
         proof = self.proof_of_work(new_block)
         if not self.add_block(new_block, proof):
             return False
-        self.unconfirmed_transactions = []
-        logging.info('Blockchain: Unconfirmed transactions list set empty.')
-        return new_block.index
 
     def create_new_block(self):
         last_block = self.last_block

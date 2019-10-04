@@ -4,7 +4,7 @@ import logging
 import threading
 
 class Node(threading.Thread):
-    def __init__(self, serverHost, sock, addr, index,type):
+    def __init__(self, serverHost, sock, addr, index, type, timeout):
         super(Node, self).__init__()
         self._serverHost_ = serverHost
         self._sock_ = sock
@@ -14,7 +14,7 @@ class Node(threading.Thread):
         self.type = type
         self._buffer_ = []
         self._stop_flag_ = threading.Event()
-        self.timeout = 5
+        self.timeout = timeout
         self._sock_.settimeout(self.timeout)
 
     def stop(self):
