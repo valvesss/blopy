@@ -49,6 +49,10 @@ The application was made to run by third part, so use it with a client.
 
 > bob.send_to_nodes(last_block)
 
+6) Request node chain size:
+
+> bob.send_to_nodes('FLAG_01')
+
 - Tests:
 
 To test the application, simple execute:
