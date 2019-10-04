@@ -43,7 +43,9 @@ class Blockchain:
         if not self.validate_previous_hash(block):
             return False
 
-        block.hash = proof
+        logging.info('Server Blockchain: Block #{} is valid!.'.format(block.index))
+        if not hasattr(block, 'hash'):
+            block.hash = proof
         return block
 
     def is_valid_proof(self, block, block_hash):
@@ -57,6 +59,7 @@ class Blockchain:
     def validate_previous_hash(self, block):
         previous_hash = self.last_block.hash
         if not previous_hash == block.previous_hash:
+            logging.error('Server Blockchain: Block #{} previous_hash is invalid!.'.format(block.index))
             return False
         return True
 
@@ -109,15 +112,19 @@ class Blockchain:
         logging.info('Server Blockchain: a new transaction was validated')
 
 def serialize_json_block(json_msg):
-    return Block(json_msg['index'],
+    try:
+        block =  Block(json_msg['index'],
                  json_msg['transactions'],
                  json_msg['timestamp'],
                  json_msg['previous_hash'],
                  json_msg['nonce'])
+    except Exception as error:
+        logging.error('Server Blockchain: could not serialize json to block!.')
+    return block
 
 def validate_block_fields(block):
     if not (block.index and isinstance(block.index, int)):
-        logging.info('Server Blockchain: Block #{0} index is Integer!.'.format(block.index))
+        logging.info('Server Blockchain: Block #{0} index is not Integer!.'.format(block.index))
         return False
 
     if not (block.transactions and isinstance(block.transactions, list)):

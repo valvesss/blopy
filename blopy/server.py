@@ -20,8 +20,7 @@ class Server(threading.Thread):
         self._nodesIn_ = []
         self._nodesOut_ = []
         self.timeout = timeout
-        self.blockchain = Blockchain()
-        # self._chain_ = []
+        self.bc = Blockchain()
         self.scale_up()
 
     def scale_up(self):

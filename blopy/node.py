@@ -35,11 +35,8 @@ class Node(threading.Thread):
                 pass
             if data:
                 message_decoded = self.decode_data(data)
-                self.validate_content_received(message_decoded)
-                self._buffer_.append(message_decoded)
-                # logging.info('Node: Server received a message from {0}Peer #{1}'.format(self.type,self.index))
-                # In use to debug
-                # logging.info('Content received: {0}'.format(message_decoded))
+                if self.validate_content_received(message_decoded):
+                    self._buffer_.append(message_decoded)
         self.close_connection('finished run')
 
     def decode_data(self, data):
@@ -47,22 +44,47 @@ class Node(threading.Thread):
             data = json.loads(data)
         except:
             data = data.decode('ascii')
+        logging.info('{0}Peer #{1}: received a type {2}!'.format(self.type,self.index,type(data)))
         return data
 
     def validate_content_received(self, msg):
         if isinstance(msg, str):
             if msg.startswith('FLAG_') and len(msg) == 7:
+                logging.info('{0}Peer #{1}: received a chain sync request'.format(self.type,self.index))
                 if msg[5:] == '01':
                     self.flag_chain_sync()
+            elif msg.startswith('RESP_'):
+                logging.info('{0}Peer #{1}: received a chain sync response'.format(self.type,self.index))
+                if msg[5] == '0' and msg[6] == '1':
+                    logging.info('{0}Peer #{1}: chain sync response is valid'.format(self.type,self.index))
+                    self.resp_chain_sync(msg)
         elif isinstance(msg, dict):
             block = serialize_json_block(msg)
-            # block_valid = bk.validate_block(block, msg['hash'])
-            self._server_.blockchain.chain.append(block)
-            # pprint(self._server_._chain_[0].__dict__)
+            if not block:
+                return False
+            logging.info('{0}Peer #{1}: received a block!'.format(self.type,self.index))
+            if self._server_.bc.validate_block(block, msg['hash']):
+                self._server_.bc.chain.append(block)
+
+    def resp_chain_sync(self, msg):
+        received_chain_size = int(msg[7:])
+        logging.info('{0}Peer #{1}: chain size received: {2}!'.format(self.type,self.index,received_chain_size))
+        self.validate_server_chain(received_chain_size)
 
     def flag_chain_sync(self):
-        logging.info('{0}Peer #{1}: received a chain sync request'.format(self.type,self.index))
-        logging.info('{0}Peer #{1}: thats my chain size: {2} !!'.format(self.type,self.index, len(self._server_.blockchain.chain)))
+        logging.info('{0}Peer #{1}: thats my chain size: {2} !!'.format(self.type,self.index, len(self._server_.bc.chain)))
+        node_chain_size = str(len(self._server_.bc.chain))
+        self.send('RESP_01{0}'.format(node_chain_size))
+
+    def validate_server_chain(self, size):
+        if size > len(self._server_.bc.chain):
+            logging.info('{0}Peer #{1}: my chain is smaller!'.format(self.type,self.index))
+            self.request_node_chain()
+            return True
+        return False
+
+    def request_node_chain(self):
+        pass
 
     def encode_data(self,data):
         if isinstance(data, str):
