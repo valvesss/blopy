@@ -33,7 +33,7 @@ class Blockchain:
     def last_block(self):
         return self.chain[-1]
 
-    def add_block(self, block, proof):
+    def validate_block(self, block, proof):
         if not validate_block_fields(block):
             return False
 
@@ -44,10 +44,7 @@ class Blockchain:
             return False
 
         block.hash = proof
-        self.chain.append(block)
-        self.unconfirmed_transactions = []
-        logging.info('Blockchain: Block #{} was inserted in the chain.'.format(block.index))
-        return True
+        return block
 
     def is_valid_proof(self, block, block_hash):
         if (block_hash.startswith('0' * self.pow_difficulty) and
@@ -81,8 +78,15 @@ class Blockchain:
 
         new_block = self.create_new_block()
         proof = self.proof_of_work(new_block)
-        if not self.add_block(new_block, proof):
+        block = self.validate_block(new_block, proof)
+        if not block:
             return False
+        self.add_block(block)
+        self.unconfirmed_transactions = []
+        logging.info('Blockchain: Block #{} was inserted in the chain.'.format(block.index))
+
+    def add_block(self, block):
+        self.chain.append(block)
 
     def create_new_block(self):
         last_block = self.last_block
@@ -103,6 +107,13 @@ class Blockchain:
 
         self.add_new_transaction(data)
         logging.info('Blockchain: a new transaction was validated')
+
+def serialize_json_block(json_msg):
+    return Block(json_msg['index'],
+                 json_msg['transactions'],
+                 json_msg['timestamp'],
+                 json_msg['previous_hash'],
+                 json_msg['nonce'])
 
 def validate_block_fields(block):
     if not (block.index and isinstance(block.index, int)):

@@ -3,10 +3,13 @@ import socket
 import logging
 import threading
 
+from blockchain import *
+
 class Node(threading.Thread):
-    def __init__(self, serverHost, sock, addr, index, type, timeout):
+    def __init__(self, server, sock, addr, index, type):
         super(Node, self).__init__()
-        self._serverHost_ = serverHost
+        self._server_ = server
+        self._server_host_ = server._host_
         self._sock_ = sock
         self._host_ = addr[0]
         self._port_ = addr[1]
@@ -14,7 +17,7 @@ class Node(threading.Thread):
         self.type = type
         self._buffer_ = []
         self._stop_flag_ = threading.Event()
-        self.timeout = timeout
+        self.timeout = server.timeout
         self._sock_.settimeout(self.timeout)
 
     def stop(self):
@@ -34,12 +37,11 @@ class Node(threading.Thread):
                 message_decoded = self.decode_data(data)
                 if not message_decoded:
                     break
+                self.validate_content_received(message_decoded)
                 self._buffer_.append(message_decoded)
                 logging.info('Node: Server received a message from {0}Peer #{1}'.format(self.type,self.index))
                 # In use to debug
                 logging.info('Content received: {0}'.format(message_decoded))
-                self.send(message_decoded)
-                self.stop()
         self.close_connection('finished run')
 
     def decode_data(self, data):
@@ -53,6 +55,22 @@ class Node(threading.Thread):
             data = json.loads(data)
         return data
 
+    def validate_content_received(self, msg):
+        if isinstance(msg, str):
+            if msg.startswith('FLAG_') and len(msg) == 7:
+                if msg[5:] == '01':
+                    self.flag_chain_sync()
+        elif isinstance(msg, dict):
+            bk = Blockchain()
+            block = serialize_json_block(msg)
+            # block_valid = bk.validate_block(block, msg['hash'])
+            self._server_._chain_.append(block)
+            pprint(self._server_._chain_[0].__dict__)
+
+    def flag_chain_sync(self):
+        logging.info('{0}Peer #{1}: received a chain sync request'.format(self.type,self.index))
+        logging.info('{0}Peer #{1}: thats my chain size: {2} !!'.format(self.type,self.index, _server_host_._chain_))
+
     def encode_data(self,data):
         if isinstance(data, str):
             data = self.ascii_encode(data)
@@ -64,7 +82,7 @@ class Node(threading.Thread):
                 return False
             data = self.ascii_encode(data)
         else:
-            logging.critical('{0}Peer #{1}: Data type not allowed ! Try again.'.format(self.type,self.index))
+            logging.critical('{0}Peer #{1}: Data type not allowed to be sent!'.format(self.type,self.index))
             return False
         return data
 
