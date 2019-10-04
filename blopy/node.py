@@ -60,6 +60,7 @@ class Node(threading.Thread):
             if msg.startswith('FLAG_') and len(msg) == 7:
                 if msg[5:] == '01':
                     self.flag_chain_sync()
+
         elif isinstance(msg, dict):
             bk = Blockchain()
             block = serialize_json_block(msg)
@@ -69,7 +70,7 @@ class Node(threading.Thread):
 
     def flag_chain_sync(self):
         logging.info('{0}Peer #{1}: received a chain sync request'.format(self.type,self.index))
-        logging.info('{0}Peer #{1}: thats my chain size: {2} !!'.format(self.type,self.index, _server_host_._chain_))
+        logging.info('{0}Peer #{1}: thats my chain size: {2} !!'.format(self.type,self.index, len(self._server_._chain_)))
 
     def encode_data(self,data):
         if isinstance(data, str):
