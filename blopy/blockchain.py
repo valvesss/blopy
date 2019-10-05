@@ -56,8 +56,8 @@ class Blockchain:
         self.pow_difficulty = 2
         self.block = Block()
 
-    def create_genesis_block(self):
-        genesis_block = self.block.create_new(0, "Yo I'm Rupert (aka Genesis Blok)", str(datetime.datetime.now()), [])
+    def create_genesis_block(self, content=None):
+        genesis_block = self.block.create_new(0, "Yo I'm Rupert (aka Genesis Blok) {0}".format(content), str(datetime.datetime.now()), [])
         genesis_block['hash'] = self.block.compute_hash(genesis_block)
         self.chain.append(genesis_block)
         logging.info('Server Blockchain: genesis block created.')
