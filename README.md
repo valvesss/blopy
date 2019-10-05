@@ -45,13 +45,21 @@ The application was made to run by third part, so use it with a client.
 
 > bk.mine()
 
-> last_block = bk.last_block.\_\_dict\_\_
+> block = bk.forge_block()
 
-> bob.send_to_nodes(last_block)
+> proof = bk.proof_of_work(block)
+
+> validated_block = bk.validate_block(block, proof)
+
+> bob.send_to_nodes(validated_block)
 
 6) Request node chain size:
 
-> bob.send_to_nodes('FLAG_01')
+> bob.send_to_nodes('REQ_01')
+
+7) Request other's node chain blocks:
+
+> bob.send_to_nodes('REQ_02')
 
 - Tests:
 
@@ -62,9 +70,7 @@ To test the application, simple execute:
 
 # TO-DO LIST
 
-- Integrate blockchain with peer (Actual moving)
-- Store data from node into Server
-- Integrated Consensus
+- Integrated Consensus (Actual moving)
 - More...
 
 Enjoy!
