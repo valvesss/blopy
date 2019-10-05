@@ -6,7 +6,7 @@ from pprint import pprint
 from hashlib import sha256
 
 class Block:
-    block_required_fields = {'index': int,
+    block_required_items = {'index': int,
                              'nonce': int,
                              'previous_hash': str,
                              'timestamp': str,
@@ -34,8 +34,9 @@ class Block:
     def validate_keys(self, block):
         if 'hash' in block:
             del block['hash']
-        if not all (k in block for k in self.block_required_fields.keys()):
-           return False
+        if not all (k in block for k in self.block_required_items.keys()):
+            logging.error('Server Blockchain: Block #{} keys are not valid!'.format(block['index']))
+            return False
         return True
 
     def validate_values(self, block):
@@ -43,7 +44,8 @@ class Block:
             del block['hash']
         keys = [k for k in block.keys()]
         for i in range(len(block)):
-            if type(block[keys[i]]) != self.block_required_fields[keys[i]]:
+            if type(block[keys[i]]) != self.block_required_items[keys[i]]:
+                logging.error('Server Blockchain: Block #{} values are not valid!'.format(block['index']))
                 return False
         return True
 
@@ -69,7 +71,6 @@ class Blockchain:
             not self.block.validate_values(block) or
             not self.validate_previous_hash(block) or
             not self.validate_proof(block, proof)):
-                logging.error('Server Blockchain: Block #{} is not valid!'.format(block['index']))
                 return False
 
         logging.info('Server Blockchain: Block #{} is valid!'.format(block['index']))
@@ -88,7 +89,7 @@ class Blockchain:
     def validate_previous_hash(self, block):
         last_block = self.last_block
         if block['previous_hash'] != last_block['hash']:
-            logging.error('Server Blockchain: Block #{} previous_hash is invalid!'.format(block['index']))
+            logging.error('Server Blockchain: Block #{} previous_hash is not valid!'.format(block['index']))
             return False
         return True
 
