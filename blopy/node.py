@@ -3,8 +3,6 @@ import socket
 import logging
 import threading
 
-from blockchain import *
-
 class Node(threading.Thread):
     def __init__(self, server, sock, addr, index, type):
         super(Node, self).__init__()
@@ -35,42 +33,80 @@ class Node(threading.Thread):
                 pass
             if data:
                 message_decoded = self.decode_data(data)
-                if not message_decoded:
-                    break
-                self.validate_content_received(message_decoded)
-                self._buffer_.append(message_decoded)
-                logging.info('Node: Server received a message from {0}Peer #{1}'.format(self.type,self.index))
-                # In use to debug
-                logging.info('Content received: {0}'.format(message_decoded))
+                if self.validate_content_received(message_decoded):
+                    self._buffer_.append(message_decoded)
         self.close_connection('finished run')
 
     def decode_data(self, data):
         try:
-            data = data.decode('ascii')
-        except:
-            logging.info('{0}Peer #{1}: Error decoding message'.format(self.type,self.index))
-            data = ""
-            return False
-        if len(data) > 20:
             data = json.loads(data)
+        except:
+            data = data.decode('ascii')
         return data
 
-    def validate_content_received(self, msg):
-        if isinstance(msg, str):
-            if msg.startswith('FLAG_') and len(msg) == 7:
-                if msg[5:] == '01':
-                    self.flag_chain_sync()
+    def validate_content_received(self, data):
+        if isinstance(data, str):
+            if data.startswith('REQ_') and len(data) == 6:
+                self.validate_received_request(data)
+            elif data.startswith('RES_'):
+                self.validate_received_response(data)
+        elif isinstance(data, dict):
+            logging.info('{0}Peer #{1}: received a block!'.format(self.type,self.index))
+            if not self._server_.bc.chain:
+                logging.critical('{0}Peer #{1}: I cannot validate blocks! I have no chain!'.format(self.type,self.index))
+                return False
+            if self._server_.bc.validate_block(data, data['hash']):
+                self._server_.bc.chain.append(data)
+        return True
 
-        elif isinstance(msg, dict):
-            bk = Blockchain()
-            block = serialize_json_block(msg)
-            # block_valid = bk.validate_block(block, msg['hash'])
-            self._server_._chain_.append(block)
-            pprint(self._server_._chain_[0].__dict__)
+    def validate_received_request(self, data):
+        request_number = data[4:]
+        if request_number == '01':
+            self.request_chain_sync()
+        elif request_number == '02':
+            self.request_chain_blocks()
 
-    def flag_chain_sync(self):
+    def validate_received_response(self, data):
+        if data[4] == '0' and data[5] == '1':
+            self.response_chain_sync(data)
+        if data[4] == '0' and data[5] == '2':
+            self.response_chain_blocks(data)
+
+    def request_chain_blocks(self):
+        logging.info('{0}Peer #{1}: received a chain blocks request'.format(self.type,self.index))
+        for block in self._server_.bc.chain:
+            block = self._server_.bc.block.dict_to_json(block)
+            self.send('RES_02{0}'.format(block))
+
+    def response_chain_blocks(self, data):
+        logging.info('{0}Peer #{1}: received a chain blocks response'.format(self.type,self.index))
+        block = self._server_.bc.block.json_to_dict(data[6:])
+        self._server_.bc.chain.append(block)
+        logging.info('{0}Peer #{1}: \nMy chain: {2}'.format(self.type,self.index,self._server_.bc.chain))
+
+    def request_chain_sync(self):
         logging.info('{0}Peer #{1}: received a chain sync request'.format(self.type,self.index))
-        logging.info('{0}Peer #{1}: thats my chain size: {2} !!'.format(self.type,self.index, len(self._server_._chain_)))
+        logging.info('{0}Peer #{1}: thats my chain size: {2} !'.format(self.type,self.index, len(self._server_.bc.chain)))
+        node_chain_size = str(len(self._server_.bc.chain))
+        self.send('RES_01{0}'.format(node_chain_size))
+
+    def response_chain_sync(self, msg):
+        logging.info('{0}Peer #{1}: received a chain sync response'.format(self.type,self.index))
+        received_chain_size = int(msg[6:])
+        logging.info('{0}Peer #{1}: chain size received: {2}!'.format(self.type,self.index,received_chain_size))
+        self.validate_server_chain(received_chain_size)
+
+    def validate_server_chain(self, size):
+        if size > len(self._server_.bc.chain):
+            logging.info('{0}Peer #{1}: my chain is smaller!'.format(self.type,self.index))
+            self._server_.bc.chain = []
+            self.request_node_chain()
+        else:
+            logging.info('{0}Peer #{1}: my chain is bigger!'.format(self.type,self.index))
+        return True
+
+    def request_node_chain(self):
+        self.send('REQ_02')
 
     def encode_data(self,data):
         if isinstance(data, str):
@@ -79,7 +115,7 @@ class Node(threading.Thread):
             try:
                 data = json.dumps(data, sort_keys=True)
             except:
-                logging.info('{0}Peer #{1}: Error dumping json!'.format(self.type,self.index))
+                logging.info('{0}Peer #{1}: Error dumping dict!'.format(self.type,self.index))
                 return False
             data = self.ascii_encode(data)
         else:
@@ -103,11 +139,11 @@ class Node(threading.Thread):
             try:
                 self._sock_.sendall(data)
             except Exception as err:
-                logging.info('Server failed to sent a message to {0}Peer: #{1}. \nError: {2}'.format(self.type,self.index,err))
+                logging.info('Server: failed to sent a message to {0}Peer: #{1}. \nError: {2}'.format(self.type,self.index,err))
                 return False
         else:
-            logging.error('Could not sent message! {0}Peer #{1} already shut down!'.format(self.type,self.index))
-        logging.info('Server sent a message to {0}Peer: #{1}.'.format(self.type,self.index))
+            logging.error('{0}Peer #{1}: Could not sent message! I\'m already shut down!'.format(self.type,self.index))
+        logging.info('Server: sent a message to {0}Peer: #{1}.'.format(self.type,self.index))
 
     def close_connection(self, msg):
         if not self._stop_flag_.is_set():

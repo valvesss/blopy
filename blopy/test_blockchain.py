@@ -1,7 +1,8 @@
 import unittest
+from test_block import TestBlock
 from blockchain import *
 
-class TesteBlockchain(unittest.TestCase):
+class TestBlockchain(unittest.TestCase):
     def setUp(self):
         pass
 
@@ -15,54 +16,45 @@ class TesteBlockchain(unittest.TestCase):
         data = {'company_name': 'Test', 'company_data': 'New Transaction'}
         bk.new_transaction(data)
 
-    def test_create_new_block(self):
-        bk = Blockchain()
-        bk.create_genesis_block()
-        data = {'company_name': 'Test', 'company_data': 'Create Genesis Block'}
-        bk.new_transaction(data)
-        bk.create_new_block()
-
     def test_proof_of_work(self):
         bk = Blockchain()
         bk.create_genesis_block()
-        data = {'company_name': 'Test', 'company_data': 'Proof of Work'}
-        bk.new_transaction(data)
-        block = bk.create_new_block()
+        block = bk.last_block
         bk.proof_of_work(block)
 
     def test_add_block(self):
+        tb = TestBlock()
         bk = Blockchain()
         bk.create_genesis_block()
         data = {'company_name': 'Test', 'company_data': 'Add Block'}
         bk.new_transaction(data)
-        block = bk.create_new_block()
+        block = tb.test_create_block()
         proof = bk.proof_of_work(block)
-        bk.add_block(block, proof)
+        bk.add_block(block)
 
-    def test_validate_block_fields(self):
+    def test_validate_proof(self):
         bk = Blockchain()
+        b = Block()
         bk.create_genesis_block()
-        data = {'company_name': 'Test', 'company_data': 'Validate Block Fields'}
-        bk.new_transaction(data)
-        block = bk.create_new_block()
-        validate_block_fields(block)
+        block = bk.last_block
+        proof = bk.proof_of_work(block)
+        block['hash'] = b.compute_hash(block)
+        bk.validate_proof(block, proof)
 
     def test_validate_previous_hash(self):
+        b = Block()
         bk = Blockchain()
-        bk.create_genesis_block()
-        data = {'company_name': 'Test', 'company_data': 'Validate Previous Hash'}
-        bk.new_transaction(data)
-        block = bk.create_new_block()
-        bk.validate_previous_hash(block)
+        tb = TestBlock()
 
-    def test_is_valid_proof(self):
-        bk = Blockchain()
+        # First block
         bk.create_genesis_block()
-        data = {'company_name': 'Test', 'company_data': 'Is Valid Proof?'}
-        bk.new_transaction(data)
-        block = bk.create_new_block()
-        proof = bk.proof_of_work(block)
-        bk.is_valid_proof(block, proof)
+        last_block = bk.last_block
+        last_block['hash'] = b.compute_hash(last_block)
+
+        # Second block
+        new_block = tb.test_create_block()
+        new_block['previous_hash'] = last_block['hash']
+        bk.validate_previous_hash(new_block)
 
     def test_mine(self):
         bk = Blockchain()
