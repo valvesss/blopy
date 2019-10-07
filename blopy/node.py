@@ -3,6 +3,8 @@ import socket
 import logging
 import threading
 
+from blockchain.Block import json_to_dict, dict_to_json
+
 class Node(threading.Thread):
     def __init__(self, server, sock, addr, index, type):
         super(Node, self).__init__()
@@ -32,45 +34,52 @@ class Node(threading.Thread):
             except Exception as err:
                 pass
             if data:
-                message_decoded = self.decode_data(data)
-                if self.validate_content_received(message_decoded):
-                    self._buffer_.append(message_decoded)
+                message_decoded = json_to_dict(data)
+                self.handle_content_received(message_decoded):
         self.close_connection('finished run')
 
-    def decode_data(self, data):
-        try:
-            data = json.loads(data)
-        except:
-            data = data.decode('ascii')
-        return data
-
-    def validate_content_received(self, data):
-        if isinstance(data, str):
-            if data.startswith('REQ_') and len(data) == 6:
-                self.validate_received_request(data)
-            elif data.startswith('RES_'):
-                self.validate_received_response(data)
-        elif isinstance(data, dict):
-            logging.info('{0}Peer #{1}: received a block!'.format(self.type,self.index))
-            if not self._server_.bc.chain:
-                logging.critical('{0}Peer #{1}: I cannot validate blocks! I have no chain!'.format(self.type,self.index))
+    def handle_content_received(self, data):
+        logging.info('{0}Peer #{1}: received a message!'.format(self.type,self.index))
+        if data['msg_type'] is 'block':
+            if not self.handle_block(data):
                 return False
-            if self._server_.bc.validate_block(data, data['hash']):
-                self._server_.bc.chain.append(data)
-        return True
+        elif data['msg_type'] is 'request':
+            self.handle_request(data)
+        elif data['msg_type'] is 'response':
+            self.handle_response(data)
+        else:
+            logging.error('{0}Peer #{1}: received a message not valid!'.format(self.type,self.index))
+            return False
+
+    def handle_block(self, data):
+        logging.info('{0}Peer #{1}: received a block!'.format(self.type,self.index))
+        block = data['content']
+        if not self._server_.bc.chain:
+            logging.critical('{0}Peer #{1}: I cannot validate blocks! I have no chain!'.format(self.type,self.index))
+            return False
+        if self._server_.bc.validate_block(block, block['hash']):
+            self._server_.bc.chain.append(block)
+
+    def handle_request(self, data):
+        logging.info('{0}Peer #{1}: received a request!'.format(self.type,self.index))
+        self.validate_received_request(data)
+
+    def handle_response(self, data):
+        logging.info('{0}Peer #{1}: received a response!'.format(self.type,self.index))
+        self.validate_received_response(data)
 
     def validate_received_request(self, data):
-        request_number = data[4:]
-        if request_number == '01':
+        if data['flag'] == 1:
             self.request_chain_sync()
-        elif request_number == '02':
+        elif data['flag'] == 2:
             self.request_chain_blocks()
 
     def validate_received_response(self, data):
-        if data[4] == '0' and data[5] == '1':
+        if data['flag'] == 1:
             self.response_chain_sync(data)
-        if data[4] == '0' and data[5] == '2':
+        elif data['flag'] == 2:
             self.response_chain_blocks(data)
+        logging.info('{0}Peer #{1}: response'.format(self.type,self.index)) # TODO
 
     def request_chain_blocks(self):
         logging.info('{0}Peer #{1}: received a chain blocks request'.format(self.type,self.index))
@@ -109,9 +118,7 @@ class Node(threading.Thread):
         self.send('REQ_02')
 
     def encode_data(self,data):
-        if isinstance(data, str):
-            data = self.ascii_encode(data)
-        elif isinstance(data, dict):
+        if isinstance(data, dict):
             try:
                 data = json.dumps(data, sort_keys=True)
             except:
