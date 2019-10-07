@@ -26,10 +26,18 @@ class Block:
         return sha256(block_string.encode()).hexdigest()
 
     def json_to_dict(self, json_block):
-        return json.loads(json_block)
+        try:
+            data = json.loads(json_block)
+        except Exception as error:
+            logging.info('Block: error converting json to dict!')
+        return data
 
     def dict_to_json(self, block):
-        return json.dumps(block, sort_keys=True)
+        try:
+            data = json.dumps(block, sort_keys=True)
+        except Exception as error:
+            logging.info('Block: error converting dict to json!')
+        return data
 
     def validate_keys(self, block):
         if 'hash' in block:
@@ -74,7 +82,7 @@ class Blockchain:
                 return False
 
         logging.info('Server Blockchain: Block #{} is valid!'.format(block['index']))
-        if not hasattr(block, 'hash'):
+        if not 'hash' in block:
             block['hash'] = proof
         return block
 
