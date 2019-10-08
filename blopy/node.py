@@ -3,7 +3,8 @@ import socket
 import logging
 import threading
 
-from blockchain.Block import json_to_dict, dict_to_json
+from blockchain import Block
+from handler import Handler, Response, Request
 
 class Node(threading.Thread):
     def __init__(self, server, sock, addr, index, type):
@@ -19,6 +20,7 @@ class Node(threading.Thread):
         self._stop_flag_ = threading.Event()
         self.timeout = server.timeout
         self._sock_.settimeout(self.timeout)
+        self.wait_response = 0
 
     def stop(self):
         if not self._stop_flag_.is_set():
@@ -34,88 +36,14 @@ class Node(threading.Thread):
             except Exception as err:
                 pass
             if data:
-                message_decoded = json_to_dict(data)
-                self.handle_content_received(message_decoded):
+                blk = Block()
+                message_decoded = blk.json_to_dict(data)
+                self.handle_message(message_decoded)
         self.close_connection('finished run')
 
-    def handle_content_received(self, data):
-        logging.info('{0}Peer #{1}: received a message!'.format(self.type,self.index))
-        if data['msg_type'] is 'block':
-            if not self.handle_block(data):
-                return False
-        elif data['msg_type'] is 'request':
-            self.handle_request(data)
-        elif data['msg_type'] is 'response':
-            self.handle_response(data)
-        else:
-            logging.error('{0}Peer #{1}: received a message not valid!'.format(self.type,self.index))
-            return False
-
-    def handle_block(self, data):
-        logging.info('{0}Peer #{1}: received a block!'.format(self.type,self.index))
-        block = data['content']
-        if not self._server_.bc.chain:
-            logging.critical('{0}Peer #{1}: I cannot validate blocks! I have no chain!'.format(self.type,self.index))
-            return False
-        if self._server_.bc.validate_block(block, block['hash']):
-            self._server_.bc.chain.append(block)
-
-    def handle_request(self, data):
-        logging.info('{0}Peer #{1}: received a request!'.format(self.type,self.index))
-        self.validate_received_request(data)
-
-    def handle_response(self, data):
-        logging.info('{0}Peer #{1}: received a response!'.format(self.type,self.index))
-        self.validate_received_response(data)
-
-    def validate_received_request(self, data):
-        if data['flag'] == 1:
-            self.request_chain_sync()
-        elif data['flag'] == 2:
-            self.request_chain_blocks()
-
-    def validate_received_response(self, data):
-        if data['flag'] == 1:
-            self.response_chain_sync(data)
-        elif data['flag'] == 2:
-            self.response_chain_blocks(data)
-        logging.info('{0}Peer #{1}: response'.format(self.type,self.index)) # TODO
-
-    def request_chain_blocks(self):
-        logging.info('{0}Peer #{1}: received a chain blocks request'.format(self.type,self.index))
-        for block in self._server_.bc.chain:
-            block = self._server_.bc.block.dict_to_json(block)
-            self.send('RES_02{0}'.format(block))
-
-    def response_chain_blocks(self, data):
-        logging.info('{0}Peer #{1}: received a chain blocks response'.format(self.type,self.index))
-        block = self._server_.bc.block.json_to_dict(data[6:])
-        self._server_.bc.chain.append(block)
-        logging.info('{0}Peer #{1}: \nMy chain: {2}'.format(self.type,self.index,self._server_.bc.chain))
-
-    def request_chain_sync(self):
-        logging.info('{0}Peer #{1}: received a chain sync request'.format(self.type,self.index))
-        logging.info('{0}Peer #{1}: thats my chain size: {2} !'.format(self.type,self.index, len(self._server_.bc.chain)))
-        node_chain_size = str(len(self._server_.bc.chain))
-        self.send('RES_01{0}'.format(node_chain_size))
-
-    def response_chain_sync(self, msg):
-        logging.info('{0}Peer #{1}: received a chain sync response'.format(self.type,self.index))
-        received_chain_size = int(msg[6:])
-        logging.info('{0}Peer #{1}: chain size received: {2}!'.format(self.type,self.index,received_chain_size))
-        self.validate_server_chain(received_chain_size)
-
-    def validate_server_chain(self, size):
-        if size > len(self._server_.bc.chain):
-            logging.info('{0}Peer #{1}: my chain is smaller!'.format(self.type,self.index))
-            self._server_.bc.chain = []
-            self.request_node_chain()
-        else:
-            logging.info('{0}Peer #{1}: my chain is bigger!'.format(self.type,self.index))
-        return True
-
-    def request_node_chain(self):
-        self.send('REQ_02')
+    def handle_message(self, message):
+        handle = Handler(self, message)
+        handle.validate()
 
     def encode_data(self,data):
         if isinstance(data, dict):
