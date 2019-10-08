@@ -21,7 +21,6 @@ class Server(threading.Thread):
         self._nodesOut_ = []
         self.timeout = timeout
         self.bc = Blockchain()
-        self.scale_up()
 
     def scale_up(self):
         self._sock_ = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -101,6 +100,7 @@ class Server(threading.Thread):
             self._stop_flag_.set()
 
     def run(self):
+        self.scale_up()
         while not self._stop_flag_.is_set():
             index = len(self._nodesIn_)
             try:
