@@ -2,7 +2,7 @@ import os
 import sys
 import json
 import time
-import node # Our library
+import node
 import socket
 import logging
 import threading
