@@ -36,14 +36,22 @@ class Node(threading.Thread):
             except Exception as err:
                 pass
             if data:
-                blk = Block()
-                message_decoded = blk.json_to_dict(data)
+                message_decoded = self.decode_data(data)
+                self._buffer_.append(message_decoded)
                 self.handle_message(message_decoded)
         self.close_connection('finished run')
 
     def handle_message(self, message):
         handle = Handler(self, message)
         handle.validate()
+
+    def decode_data(self, data):
+        try:
+            data = data.decode('ascii')
+            data = json.loads(data)
+        except Exception as error:
+            logging.error('{0}Peer #{1}: Could not decode data!'.format(self.type,self.index))
+        return data
 
     def encode_data(self,data):
         if isinstance(data, dict):
@@ -54,7 +62,7 @@ class Node(threading.Thread):
                 return False
             data = self.ascii_encode(data)
         else:
-            logging.critical('{0}Peer #{1}: Data type not allowed to be sent!'.format(self.type,self.index))
+            logging.error('{0}Peer #{1}: Message invalid! Encode failed!'.format(self.type,self.index))
             return False
         return data
 
