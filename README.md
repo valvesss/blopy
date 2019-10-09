@@ -71,6 +71,12 @@ The application was made to run by third part, so use it with a client.
 
 > bob.send_to_nodes(req)
 
+8) Request a new block validation:
+
+> req = m.create('request', 3)
+
+> bob.send_to_nodes(req)
+
 - Tests:
 
 To test the application, simple execute:
@@ -82,5 +88,11 @@ To test the application, simple execute:
 
 - Integrated Consensus (Actual moving)
 - More...
+
+# Contribute
+
+- Help with documentation!
+- Help forking!
+- Help pulling requests!
 
 Enjoy!
