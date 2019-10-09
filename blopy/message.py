@@ -1,6 +1,5 @@
 import logging
 
-from pprint import pprint
 from datetime import datetime
 
 class Message(object):
@@ -31,5 +30,6 @@ class Message(object):
         try:
             datetime.strptime(message['timestamp'], '%Y-%m-%d %H:%M:%S.%f')
         except:
+            logging.error('Message: {timestamp} is not valid!')
             return False
         return True
