@@ -13,7 +13,7 @@ bob.bc.create_genesis_block('IM BOB')
 data = {'company_name': 'It works!', 'company_data': 'Bloco do Bob'}
 bob.bc.new_transaction(data)
 bob.bc.mine()
-time.sleep(3)
+# time.sleep(3)
 block = bob.bc.forge_block()
 proof = bob.bc.proof_of_work(block)
 validated_block = bob.bc.validate_block(block, proof)
