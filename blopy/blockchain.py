@@ -75,18 +75,27 @@ class Blockchain:
         return self.chain[-1]
 
     def validate_block(self, block, proof):
+        if block['index'] == 0:
+            return True
         if (not self.block.validate_keys(block) or
             not self.block.validate_values(block) or
-            not self.validate_previous_hash(block) or
             not self.validate_proof(block, proof)):
                 return False
-
         logging.info('Server Blockchain: Block #{} is valid!'.format(block['index']))
         if not 'hash' in block:
             block['hash'] = proof
         return block
 
+    def validate_new_block(self, block, proof):
+        if self.validate_block(block, proof):
+            if self.validate_previous_hash(block):
+                return True
+        return False
+
     def validate_proof(self, block, proof):
+        if block['index'] == 0:
+            logging.error('Server Blockchain: Block #{} has no valid proof! He\'s genesis!'.format(block['index']))
+            return True
         block_hash = self.block.compute_hash(block)
         if (not (block_hash.startswith('0' * self.pow_difficulty) or
                 block_hash != proof)):
@@ -118,7 +127,7 @@ class Blockchain:
 
         block = self.forge_block()
         proof = self.proof_of_work(block)
-        validated_block = self.validate_block(block, proof)
+        validated_block = self.validate_new_block(block, proof)
         if not validated_block:
             return False
         self.add_block(validated_block)
@@ -137,7 +146,6 @@ class Blockchain:
 
     def new_transaction(self, data):
         required_fields = ["company_name", "company_data"]
-
         for field in required_fields:
             if not data.get(field):
                 logging.error('Server Blockchain: The transaction data is invalid.')
