@@ -28,9 +28,6 @@ class Message(object):
             logging.error('Message: {flag} is not valid!')
             return False
 
-        if len(message['timestamp']) < 26 or len(message['timestamp']) > 26
-            return False
-
         try:
             datetime.strptime(message['timestamp'], '%Y-%m-%d %H:%M:%S.%f')
         except:
