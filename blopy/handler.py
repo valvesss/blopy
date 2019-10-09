@@ -60,7 +60,7 @@ class Response:
 
     def new_block(self):
         logging.info('{0}Peer #{1}: Response: received a new block!'.format(self.node.type,self.node.index))
-        block = data['content'][0]
+        block = self.data['content'][0]
         if not self.node._server_.bc.chain:
             logging.error('{0}Peer #{1}: Response: I cannot validate blocks! Server has no chain!'.format(self.node.type,self.node.index))
         else:
@@ -86,6 +86,8 @@ class Request:
             self.chain_size()
         elif self.data['flag'] == 2:
             self.chain_sync()
+        elif self.data['flag'] == 3:
+            self.new_block()
         else:
             logging.error('{0}Peer #{1}: response flag not valid!'.format(self.node.type,self.node.index))
             return False
@@ -95,13 +97,16 @@ class Request:
         self.validate_chain_size(chain_size)
 
     def chain_sync(self):
-        from pprint import pprint
         self.node._server_.bc.chain = []
         for json_block in self.data['content']:
             block = self.handler.block.json_to_dict(json_block)
             if self.node._server_.bc.validate_block(block, block['hash']):
                 self.node._server_.bc.add_block(block)
-        pprint(self.node._server_.bc.chain)
+
+    def new_block(self):
+        if self.data['content'][0]:
+            self.node._server_.bc.add_block(block)
+            logging.info('{0}Peer #{1}: Response: received a block confirmation. Appending!'.format(self.node.type,self.node.index))
 
     def validate_chain_size(self, size):
         if size > len(self.node._server_.bc.chain):
