@@ -9,7 +9,8 @@ class Message(object):
                         'flag': flag,
                         'content': content,
                         'timestamp': str(datetime.now())}
-        if self.validate(new_message)
+        if self.validate(new_message):
+            return new_message
 
     def validate(self, message):
         if not (isinstance(message['msg_type'], str) and
