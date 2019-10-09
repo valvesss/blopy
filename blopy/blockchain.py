@@ -4,6 +4,7 @@ import datetime
 
 from pprint import pprint
 from hashlib import sha256
+from message import Message
 
 class Block:
     block_required_items = {'index': int,
@@ -56,7 +57,8 @@ class Block:
         return True
 
 class Blockchain:
-    def __init__(self):
+    def __init__(self, server):
+        self.server = server
         self.unconfirmed_transactions = []
         self.chain = []
         self.pow_difficulty = 2
@@ -128,12 +130,17 @@ class Blockchain:
         validated_block = self.validate_new_block(block, proof)
         if not validated_block:
             return False
-        self.add_block(validated_block)
+        self.request_new_block_validation(validated_block)
         self.unconfirmed_transactions = []
         logging.info('Server Blockchain: Block #{} was inserted in the chain.'.format(block['index']))
 
     def add_block(self, block):
         self.chain.append(block)
+
+    def request_new_block_validation(self, block):
+        m = Message()
+        message = m.create('request', 3, [block])
+        self.server.send_to_nodes(message)
 
     def forge_block(self):
         return self.block.create_new(self.last_block['index'] + 1,
