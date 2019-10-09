@@ -13,13 +13,11 @@ class Block:
                              'transactions': list}
 
     def create_new(self,index,previous_hash,timestamp,transactions):
-        block_raw = {'index': index,
-                     'nonce': 0,
-                     'previous_hash': previous_hash,
-                     'timestamp': timestamp,
-                     'transactions': transactions}
-
-        return block_raw
+        return {'index': index,
+                 'nonce': 0,
+                 'previous_hash': previous_hash,
+                 'timestamp': timestamp,
+                 'transactions': transactions}
 
     def compute_hash(self, block):
         block_string = self.dict_to_json(block)
@@ -89,7 +87,7 @@ class Blockchain:
     def validate_new_block(self, block, proof):
         if self.validate_block(block, proof):
             if self.validate_previous_hash(block):
-                return True
+                return block
         return False
 
     def validate_proof(self, block, proof):
@@ -138,11 +136,10 @@ class Blockchain:
         self.chain.append(block)
 
     def forge_block(self):
-        last_block = self.last_block
-        return self.block.create_new(last_block['index'] + 1,
-                                    last_block['hash'],
-                                    str(datetime.datetime.now()),
-                                    self.unconfirmed_transactions)
+        return self.block.create_new(self.last_block['index'] + 1,
+                                     self.last_block['hash'],
+                                     str(datetime.datetime.now()),
+                                     self.unconfirmed_transactions)
 
     def new_transaction(self, data):
         required_fields = ["company_name", "company_data"]
