@@ -20,7 +20,7 @@ class Server(threading.Thread):
         self._nodesIn_ = []
         self._nodesOut_ = []
         self.timeout = timeout
-        self.bc = Blockchain()
+        self.bc = Blockchain(self)
 
     def scale_up(self):
         self._sock_ = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
