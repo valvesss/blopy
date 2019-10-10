@@ -35,43 +35,39 @@ The application was made to run by third part, so use it with a client.
 
 > bob.connect_with_peer('localhost', 6000)
 
-4) Sending string-like messages:
-
-> bob.send_to_nodes('Hello World')
-
-5) Sending JSON-like messages (now using blockchain functions):
+4) Create genesis block:
 
 > bk = Blockchain()
 
 > bk.create_genesis_block()
 
-> bk.new_transaction()
+5) Send transactions to all peers-shared-tx-memory
+
+> data = {'company_name': 'It works!', 'company_data': 'Bloco do Bob'}
+
+> bk.new_transaction(data)
+
+6) Mining !!!
 
 > bk.mine()
 
-> block = bk.forge_block()
+7) Forge a new block
 
-> proof = bk.proof_of_work(block)
+> bk.forge_block()
 
-> validated_block = bk.validate_block(block, proof)
+8) Requesting other nodes validation for new block
 
-> bob.send_to_nodes(validated_block)
+> bob.bc.request_add_block()
 
-6) Request node chain size:
+9) Request node chain size:
 
 > req = m.create('request', 1)
 
 > bob.send_to_nodes(req)
 
-7) Request other's node chain blocks:
+10) Request other's node chain blocks:
 
 > req = m.create('request', 2)
-
-> bob.send_to_nodes(req)
-
-8) Request a new block validation:
-
-> req = m.create('request', 3)
 
 > bob.send_to_nodes(req)
 
@@ -81,15 +77,15 @@ To test the application, simple execute:
 
 > python -m unittest -v test_server
 
-
 # TO-DO LIST
 
-- Integrated Consensus (Actual moving)
+- Smart consensus (51%)
 - More...
 
 # Contribute
 
-- Help with documentation!
+- Help with documentation!!!!!!!!!!!
+- Help writing tests!!!!!!!!!!!
 - Help forking!
 - Help pulling requests!
 
