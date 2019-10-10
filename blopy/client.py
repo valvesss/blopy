@@ -14,7 +14,7 @@ data = {'company_name': 'It works!', 'company_data': 'Bloco do Bob'}
 bob.bc.new_transaction(data)
 bob.bc.mine()
 time.sleep(8)
-block = bob.bc.forge_block()
+bob.bc.forge_block()
 bob.bc.request_add_block()
 time.sleep(12)
 pprint(bob.bc.chain)
