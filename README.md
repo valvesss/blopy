@@ -15,6 +15,10 @@ The application was made to run by third part, so use it with a client.
 
 > from server import Server
 
+> from message import Message
+
+> m = Message()
+
 1) Starting a node (In one terminal)
 
 > bob = Server('localhost', 5000, 10)
@@ -55,11 +59,21 @@ The application was made to run by third part, so use it with a client.
 
 6) Request node chain size:
 
-> bob.send_to_nodes('REQ_01')
+> req = m.create('request', 1)
+
+> bob.send_to_nodes(req)
 
 7) Request other's node chain blocks:
 
-> bob.send_to_nodes('REQ_02')
+> req = m.create('request', 2)
+
+> bob.send_to_nodes(req)
+
+8) Request a new block validation:
+
+> req = m.create('request', 3)
+
+> bob.send_to_nodes(req)
 
 - Tests:
 
@@ -72,5 +86,11 @@ To test the application, simple execute:
 
 - Integrated Consensus (Actual moving)
 - More...
+
+# Contribute
+
+- Help with documentation!
+- Help forking!
+- Help pulling requests!
 
 Enjoy!

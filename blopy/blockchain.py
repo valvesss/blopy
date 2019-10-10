@@ -4,6 +4,7 @@ import datetime
 
 from pprint import pprint
 from hashlib import sha256
+from message import Message
 
 class Block:
     block_required_items = {'index': int,
@@ -13,23 +14,29 @@ class Block:
                              'transactions': list}
 
     def create_new(self,index,previous_hash,timestamp,transactions):
-        block_raw = {'index': index,
-                     'nonce': 0,
-                     'previous_hash': previous_hash,
-                     'timestamp': timestamp,
-                     'transactions': transactions}
-
-        return block_raw
+        return {'index': index,
+                 'nonce': 0,
+                 'previous_hash': previous_hash,
+                 'timestamp': timestamp,
+                 'transactions': transactions}
 
     def compute_hash(self, block):
         block_string = self.dict_to_json(block)
         return sha256(block_string.encode()).hexdigest()
 
     def json_to_dict(self, json_block):
-        return json.loads(json_block)
+        try:
+            data = json.loads(json_block)
+        except Exception as error:
+            logging.info('Block: error converting json to dict!')
+        return data
 
     def dict_to_json(self, block):
-        return json.dumps(block, sort_keys=True)
+        try:
+            data = json.dumps(block, sort_keys=True)
+        except Exception as error:
+            logging.info('Block: error converting dict to json!')
+        return data
 
     def validate_keys(self, block):
         if 'hash' in block:
@@ -50,7 +57,8 @@ class Block:
         return True
 
 class Blockchain:
-    def __init__(self):
+    def __init__(self, server):
+        self.server = server
         self.unconfirmed_transactions = []
         self.chain = []
         self.pow_difficulty = 2
@@ -67,18 +75,27 @@ class Blockchain:
         return self.chain[-1]
 
     def validate_block(self, block, proof):
+        if block['index'] == 0:
+            return True
         if (not self.block.validate_keys(block) or
             not self.block.validate_values(block) or
-            not self.validate_previous_hash(block) or
             not self.validate_proof(block, proof)):
                 return False
-
         logging.info('Server Blockchain: Block #{} is valid!'.format(block['index']))
-        if not hasattr(block, 'hash'):
+        if not 'hash' in block:
             block['hash'] = proof
         return block
 
+    def validate_new_block(self, block, proof):
+        if self.validate_block(block, proof):
+            if self.validate_previous_hash(block):
+                return block
+        return False
+
     def validate_proof(self, block, proof):
+        if block['index'] == 0:
+            logging.error('Server Blockchain: Block #{} has no valid proof! He\'s genesis!'.format(block['index']))
+            return True
         block_hash = self.block.compute_hash(block)
         if (not (block_hash.startswith('0' * self.pow_difficulty) or
                 block_hash != proof)):
@@ -110,26 +127,29 @@ class Blockchain:
 
         block = self.forge_block()
         proof = self.proof_of_work(block)
-        validated_block = self.validate_block(block, proof)
+        validated_block = self.validate_new_block(block, proof)
         if not validated_block:
             return False
-        self.add_block(validated_block)
+        self.request_new_block_validation(validated_block)
         self.unconfirmed_transactions = []
         logging.info('Server Blockchain: Block #{} was inserted in the chain.'.format(block['index']))
 
     def add_block(self, block):
         self.chain.append(block)
 
+    def request_new_block_validation(self, block):
+        m = Message()
+        message = m.create('request', 3, [block])
+        self.server.send_to_nodes(message)
+
     def forge_block(self):
-        last_block = self.last_block
-        return self.block.create_new(last_block['index'] + 1,
-                                    last_block['hash'],
-                                    str(datetime.datetime.now()),
-                                    self.unconfirmed_transactions)
+        return self.block.create_new(self.last_block['index'] + 1,
+                                     self.last_block['hash'],
+                                     str(datetime.datetime.now()),
+                                     self.unconfirmed_transactions)
 
     def new_transaction(self, data):
         required_fields = ["company_name", "company_data"]
-
         for field in required_fields:
             if not data.get(field):
                 logging.error('Server Blockchain: The transaction data is invalid.')
