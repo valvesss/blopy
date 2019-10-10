@@ -22,6 +22,11 @@ class Server(threading.Thread):
         self.timeout = timeout
         self.bc = Blockchain(self)
 
+    def is_any_node_alive(self):
+        if self._nodesIn_ or self._nodesOut_:
+            return True
+        return False
+
     def scale_up(self):
         self._sock_ = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._sock_.bind(('', self._port_))

@@ -28,14 +28,16 @@ class Block:
         try:
             data = json.loads(json_block)
         except Exception as error:
-            logging.info('Block: error converting json to dict!')
+            logging.error('Block: error converting json to dict!')
+            return False
         return data
 
     def dict_to_json(self, block):
         try:
             data = json.dumps(block, sort_keys=True)
         except Exception as error:
-            logging.info('Block: error converting dict to json!')
+            logging.error('Block: error converting dict to json!')
+            return False
         return data
 
     def validate_keys(self, block):
@@ -57,9 +59,12 @@ class Block:
         return True
 
 class Blockchain:
+    m = Message()
     def __init__(self, server):
         self.server = server
+        self.unconfirmed_blocks = []
         self.unconfirmed_transactions = []
+        self.local_tx = []
         self.chain = []
         self.pow_difficulty = 2
         self.block = Block()
@@ -81,7 +86,6 @@ class Blockchain:
             not self.block.validate_values(block) or
             not self.validate_proof(block, proof)):
                 return False
-        logging.info('Server Blockchain: Block #{} is valid!'.format(block['index']))
         if not 'hash' in block:
             block['hash'] = proof
         return block
@@ -117,9 +121,6 @@ class Blockchain:
             computed_hash = self.block.compute_hash(block)
         return computed_hash
 
-    def add_new_transaction(self, transaction):
-        self.unconfirmed_transactions.append(transaction)
-
     def mine(self):
         if not self.unconfirmed_transactions:
             logging.info('Server Blockchain: There are no transactions to mine!')
@@ -130,32 +131,58 @@ class Blockchain:
         validated_block = self.validate_new_block(block, proof)
         if not validated_block:
             return False
-        self.request_new_block_validation(validated_block)
+        self.request_add_block(validated_block)
         self.unconfirmed_transactions = []
         logging.info('Server Blockchain: Block #{} was inserted in the chain.'.format(block['index']))
+
+    def get_unconfirmed_blocks(self):
+        blocks = self.unconfirmed_blocks
+        self.unconfirmed_blocks = []
+        return blocks
 
     def add_block(self, block):
         self.chain.append(block)
 
-    def request_new_block_validation(self, block):
-        m = Message()
-        message = m.create('request', 3, [block])
-        self.server.send_to_nodes(message)
+    def request_add_block(self):
+        blocks = self.get_unconfirmed_blocks()
+        message = self.m.create('request', 3, blocks)
+        if self.server.is_any_node_alive():
+            self.server.send_to_nodes(message)
+            logging.info('Server Blockchain: Local blocks were sent to validation.')
+        else:
+            self.add_block(block)
 
     def forge_block(self):
-        return self.block.create_new(self.last_block['index'] + 1,
+        block = self.block.create_new(self.last_block['index'] + 1,
                                      self.last_block['hash'],
                                      str(datetime.datetime.now()),
                                      self.unconfirmed_transactions)
+        proof = self.proof_of_work(block)
+        if self.validate_block(block, proof):
+            self.unconfirmed_blocks.append(block)
+
+    def add_tx(self):
+        tx = self.local_tx[-1]
+        self.unconfirmed_transactions.append(tx)
+        self.local_tx = []
 
     def new_transaction(self, data):
+        if not self.validate_tx_data(data):
+            return False
+
+        self.local_tx.append(data)
+        if self.server.is_any_node_alive():
+            msg = self.m.create('request', 4, [data])
+            self.server.send_to_nodes(msg)
+            logging.info('Server Blockchain: a new transaction was sent to the network')
+        else:
+            self.add_tx()
+
+    def validate_tx_data(self, data):
         required_fields = ["company_name", "company_data"]
         for field in required_fields:
             if not data.get(field):
                 logging.error('Server Blockchain: The transaction data is invalid.')
                 return False
-
-        data["timestamp"] = str(datetime.datetime.now())
-
-        self.add_new_transaction(data)
+        return True
         logging.info('Server Blockchain: a new transaction was validated')
