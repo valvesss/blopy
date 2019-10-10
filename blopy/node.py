@@ -86,7 +86,6 @@ class Node(threading.Thread):
                 return False
         else:
             logging.error('{0}Peer #{1}: Could not sent message! I\'m already shut down!'.format(self.type,self.index))
-        logging.info('Server: sent a message to {0}Peer: #{1}.'.format(self.type,self.index))
 
     def close_connection(self, msg):
         if not self._stop_flag_.is_set():
