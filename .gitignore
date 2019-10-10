@@ -2,4 +2,4 @@ __pycache__
 .gitignore
 todo.py
 local*
-cli**
+cli
