@@ -13,10 +13,6 @@ The application was made to run by third part, so use it with a client.
 
 > from server import Server
 
-> from message import Message
-
-> m = Message()
-
 1) Starting a node (In one terminal)
 
 > bob = Server('localhost', 5000, 10)
@@ -54,6 +50,10 @@ The application was made to run by third part, so use it with a client.
 8) Requesting other nodes validation for new block
 
 > bob.bc.request_add_block()
+
+- Messages
+
+See [Messages](https://github.com/valvesss/blopy/wiki/Lib:-Message)
 
 - Request/Response to other nodes
 
