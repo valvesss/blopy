@@ -55,17 +55,9 @@ The application was made to run by third part, so use it with a client.
 
 > bob.bc.request_add_block()
 
-9) Request node chain size:
+- Request/Response to other nodes
 
-> req = m.create('request', 1)
-
-> bob.send_to_nodes(req)
-
-10) Request other's node chain blocks:
-
-> req = m.create('request', 2)
-
-> bob.send_to_nodes(req)
+See [Handler](https://github.com/valvesss/blopy/wiki/Lib:-Handler)
 
 - Tests:
 
