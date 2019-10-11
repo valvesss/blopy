@@ -69,7 +69,7 @@ The application was made to run by third part, so use it with a client.
 
 - Tests:
 
-Please look to our [Wiki Running Tests](Running Tests)
+See [Tests](Running Tests)
 
 # TO-DO LIST
 
