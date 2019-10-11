@@ -4,14 +4,12 @@ Blopy is a python library that provides a full self blockchain node. It
 handles P2P connections, immutable-ledger, cryptography, consensus protocol and
 mining functions.
 
-Each node runs independently until find other nodes in the network. As the
-premise says: "if the node found has a large chain, it adapts to it".
+Each node runs independently until connect to other nodes in the network. As the
+premise says: "if the node connected has a large chain, it adapts to it".
 
 The application was made to run by third part, so use it with a client.
 
 - Client example:
-
-> from blockchain import *
 
 > from server import Server
 
@@ -37,23 +35,21 @@ The application was made to run by third part, so use it with a client.
 
 4) Create genesis block:
 
-> bk = Blockchain()
-
-> bk.create_genesis_block()
+> bob.bc.create_genesis_block()
 
 5) Send transactions to all peers-shared-tx-memory
 
 > data = {'company_name': 'It works!', 'company_data': 'Bloco do Bob'}
 
-> bk.new_transaction(data)
+> bob.bc.new_transaction(data)
 
 6) Mining !!!
 
-> bk.mine()
+> bob.bc.mine()
 
 7) Forge a new block
 
-> bk.forge_block()
+> bob.forge_block()
 
 8) Requesting other nodes validation for new block
 
@@ -73,13 +69,15 @@ The application was made to run by third part, so use it with a client.
 
 - Tests:
 
-To test the application, simple execute:
-
-> python -m unittest -v test_server
+Please look to our [Wiki Running Tests](Running Tests)
 
 # TO-DO LIST
 
+- Validate for nodes running different chains (but in same network)
+- Node search for other nodes over the network
 - Smart consensus (51%)
+- Improve out of memory immutable-ledger
+- Integration with NGROK
 - More...
 
 # Contribute
