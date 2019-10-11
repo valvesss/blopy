@@ -69,7 +69,11 @@ The application was made to run by third part, so use it with a client.
 
 - Tests:
 
+<<<<<<< HEAD
 See [Tests](Running Tests)
+=======
+Please look to our [Wiki Running Tests](Running tests)
+>>>>>>> 2896fcdad5812536471909cf20454a96f0708383
 
 # TO-DO LIST
 
