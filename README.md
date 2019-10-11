@@ -69,7 +69,7 @@ The application was made to run by third part, so use it with a client.
 
 - Tests:
 
-See [Tests](Running Tests)
+See [Tests](https://github.com/valvesss/blopy/wiki/Running-tests)
 
 # TO-DO LIST
 
