@@ -9,47 +9,17 @@ premise says: "if the node connected has a large chain, it adapts to it".
 
 The application was made to run by third part, so use it with a client.
 
-- Client example:
+- Running a Peer (Server)
 
-> from server import Server
+See [Server](https://github.com/valvesss/blopy/wiki/Lib:-Server)
 
-1) Starting a node (In one terminal)
+- Running a Peer (Node)
 
-> bob = Server('localhost', 5000, 10)
+See [Node](https://github.com/valvesss/blopy/wiki/Lib:-Node)
 
-> bob.start()
+- Blocks, Transactions and Mine
 
-2) Starting other node (In other terminal)
-
-> alice = Server('localhost', 6000, 10)
-
-> alice.start()
-
-3) Connecting to other nodes:
-
-> bob.connect_with_peer('localhost', 6000)
-
-4) Create genesis block:
-
-> bob.bc.create_genesis_block()
-
-5) Send transactions to all peers-shared-tx-memory
-
-> data = {'company_name': 'It works!', 'company_data': 'Bloco do Bob'}
-
-> bob.bc.new_transaction(data)
-
-6) Mining !!!
-
-> bob.bc.mine()
-
-7) Forge a new block
-
-> bob.forge_block()
-
-8) Requesting other nodes validation for new block
-
-> bob.bc.request_add_block()
+See [Blockchain](https://github.com/valvesss/blopy/wiki/Lib:-blockchain)
 
 - Messages
 
@@ -65,17 +35,18 @@ See [Tests](https://github.com/valvesss/blopy/wiki/Running-tests)
 
 # TO-DO LIST
 
-- Validate for nodes running different chains (but in same network)
+- Step validation for nodes running different chains (but in same network)
 - Node search for other nodes over the network
-- Smart consensus (51%)
-- Improve out of memory immutable-ledger
+- Smart consensus (>51%)
+- Have immutable-ledger out of memory
 - Integration with NGROK
+- Integration with IPFS
 - More...
 
 # Contribute
 
-- Help with documentation!!!!!!!!!!!
-- Help writing tests!!!!!!!!!!!
+- Help with documentation!
+- Help writing tests!
 - Help forking!
 - Help pulling requests!
 
