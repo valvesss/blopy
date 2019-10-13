@@ -3,7 +3,7 @@ import socket
 import logging
 import threading
 
-from blockchain import Block
+from block import Block
 from handler import Handler, Response, Request
 
 class Node(threading.Thread):
