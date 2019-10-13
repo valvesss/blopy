@@ -1,7 +1,7 @@
 import logging
 
 from message import Message
-from blockchain import Block
+from block import Block
 
 class Handler(object):
     def __init__(self, node, data):
