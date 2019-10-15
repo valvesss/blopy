@@ -50,75 +50,62 @@ class Blockchain(object):
             return False
         return True
 
-    def proof_of_work(self, block):
-        computed_hash = self.block.compute_hash(block)
-        while not computed_hash.startswith('0' * self.pow_difficulty):
-            block['nonce'] += 1
-            computed_hash = self.block.compute_hash(block)
-        return computed_hash
-
-    def mine(self):
-        if not self.unconfirmed_transactions:
-            logging.info('Server Blockchain: There are no transactions to mine!')
-            return False
-
-        block_raw = self.forge_block()
-        proof = self.proof_of_work(block_raw)
-        if not self.block.validate(block_raw, proof):
-            return False
-        if not self.validate_previous_hash(validated_block):
-            return False
-        self.request_add_block(validated_block)
-        self.unconfirmed_transactions = []
-        logging.info('Server Blockchain: Block #{} was inserted in the chain.'.format(block['index']))
-
-    def get_unconfirmed_blocks(self):
-        blocks = self.unconfirmed_blocks
-        self.unconfirmed_blocks = []
-        return blocks
-
-    def add_block(self, block_raw):
-        self.chain.append(block_raw)
+    def add_block(self, block):
+        self.shared_ledger.append(block)
 
     def request_add_block(self):
-        blocks = self.get_unconfirmed_blocks()
-        message = self.m.create('request', 3, blocks)
+        if not self.local_block:
+            logging.info('Server Blockchain: There is no block to mine!.')
+            return False
         if self.server.is_any_node_alive():
+            message = self.message.create('request', 3, [self.local_block])
             self.server.send_to_nodes(message)
             logging.info('Server Blockchain: Local blocks were sent to validation.')
         else:
-            self.add_block(block)
+            self.add_block(self.local_block)
+        self.clear_local_block()
 
     def forge_block(self):
-        block_raw = self.block.forge(self.last_block['index'] + 1,
-                                     self.last_block['hash'],
-                                     self.unconfirmed_transactions)
-        proof = self.proof_of_work(block_raw)
-        if self.block.validate(block_raw):
-            self.unconfirmed_blocks.append(block_raw)
+        self.local_block = self.block.forge(self.last_block['index'] + 1,
+                                            self.last_block['hash'],
+                                            self.shared_tx)
 
-    def add_tx(self):
-        tx = self.local_tx[-1]
-        self.unconfirmed_transactions.append(tx)
-        self.local_tx = []
+    def clear_local_block(self):
+        self.block = None
 
-    def new_transaction(self, data):
-        if not self.validate_tx_data(data):
-            return False
+    # Mine
+    def mine(self):
+        self.forge_block()
+        self.proof_of_work()
+        self.request_add_block()
 
+    def proof_of_work(self):
+        block = self.local_block
+        computed_hash = self.utils.compute_hash(block)
+        while not computed_hash.startswith('0' * self.pow_difficulty):
+            block['nonce'] += 1
+            computed_hash = self.utils.compute_hash(block)
+        self.local_block['hash'] = computed_hash
+
+    # Transactions
+    def new_tx(self, data):
+        tx = Transaction()
+        data['index'] = self.get_tx_num()
+        tx_raw = tx.new(data)
         self.local_tx.append(data)
+        self.send_tx_to_nodes()
+
+    def send_tx_to_nodes(self):
         if self.server.is_any_node_alive():
-            msg = self.m.create('request', 4, [data])
+            msg = self.message.create('request', 4, [data])
             self.server.send_to_nodes(msg)
-            logging.info('Server Blockchain: a new transaction was sent to the network')
+            logging.info('Server Blockchain: a new tx was sent to the network')
         else:
             self.add_tx()
 
-    def validate_tx_data(self, data):
-        required_fields = ["company_name", "company_data"]
-        for field in required_fields:
-            if not data.get(field):
-                logging.error('Server Blockchain: The transaction data is invalid.')
-                return False
-        return True
-        logging.info('Server Blockchain: a new transaction was validated')
+    def add_tx(self):
+        self.shared_tx.append(self.local_tx)
+        self.clear_local_tx()
+
+    def clear_local_tx(self):
+        self.local_tx = []
