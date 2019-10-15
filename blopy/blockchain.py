@@ -2,33 +2,45 @@ import json
 import logging
 import datetime
 
-from pprint import pprint
+from time import sleep
 from block import Block
+from utils import Utils
 from message import Message
+from transaction import Transaction
 
 class Blockchain(object):
-    m = Message()
     block = Block()
+    utils = Utils()
+    message = Message()
     def __init__(self, server):
         self.server = server
-        self.unconfirmed_blocks = []
-        self.unconfirmed_transactions = []
         self.local_tx = []
-        self.chain = []
+        self.shared_tx = []
+        self.count_tx = None
+        self.local_block = None
+        self.shared_ledger = []
         self.pow_difficulty = 2
 
     @property
     def last_block(self):
-        return self.chain[-1]
+        return self.shared_ledger[-1]
 
-    def add_to_chain(self, block):
-        self.chain.append(block)
+    def check_server_status(self):
+        while not self.server.alive:
+            sleep(1)
 
+    def get_tx_num(self):
+        if self.count_tx:
+            return self.count_tx
+        return 1
+
+    # Block
     def forge_genesis_block(self, content=None):
+        self.check_server_status()
         content = "Yo I'm Rupert (aka Genesis Blok) {0}".format(content)
         block = self.block.forge(0, content, [])
-        block['hash'] = self.block.compute_hash(block)
-        self.add_to_chain(block)
+        block['hash'] = self.utils.compute_hash(block)
+        self.add_block(block)
         logging.info('Server Blockchain: genesis block created.')
 
     def validate_previous_hash(self, block_raw):
