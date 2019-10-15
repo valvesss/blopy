@@ -1,7 +1,7 @@
 import logging
 
 from utils import Utils
-from hashlib import sha256
+from pprint import pprint
 from datetime import datetime
 
 class Block(object):
