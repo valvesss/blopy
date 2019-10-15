@@ -49,19 +49,19 @@ class Response:
             return False
 
     def chain_size(self):
-        server_chain_size = len(self.node._server_.bc.chain)
+        server_chain_size = len(self.node._server_.bc.shared_ledger)
         self.return_response(1, server_chain_size)
         logging.info('{0}Peer #{1}: Response: sent a chain size response'.format(self.node.type,self.node.index))
 
     def chain_sync(self):
-        blocks = [self.handler.block.dict_to_json(block) for block in self.node._server_.bc.chain]
+        blocks = [self.handler.block.dict_to_json(block) for block in self.node._server_.bc.shared_ledger]
         self.return_response(2, blocks)
         logging.info('{0}Peer #{1}: Response: sent a chain sync response'.format(self.node.type,self.node.index))
 
     def new_block(self):
         logging.info('{0}Peer #{1}: Response: received a new block!'.format(self.node.type,self.node.index))
         block = self.data['content'][0]
-        if not self.node._server_.bc.chain:
+        if not self.node._server_.bc.shared_ledger:
             logging.error('{0}Peer #{1}: Response: I cannot validate blocks! Server has no chain!'.format(self.node.type,self.node.index))
         else:
             if self.node._server_.bc.validate_block(block, block['hash']):
@@ -107,7 +107,7 @@ class Request:
         self.validate_chain_size(chain_size)
 
     def chain_sync(self):
-        self.node._server_.bc.chain = []
+        self.node._server_.bc.shared_ledger = []
         for json_block in self.data['content'][0]:
             block = self.handler.block.json_to_dict(json_block)
             if self.node._server_.bc.validate_block(block, block['hash']):
@@ -126,9 +126,9 @@ class Request:
             self.node._server_.bc.add_tx()
 
     def validate_chain_size(self, size):
-        if size > len(self.node._server_.bc.chain):
+        if size > len(self.node._server_.bc.shared_ledger):
             logging.info('{0}Peer #{1}: my chain is smaller. Requesting synchronization!'.format(self.node.type,self.node.index))
-            self.node._server_.bc.chain = []
+            self.node._server_.bc.shared_ledger = []
             self.request_node_chain()
 
     def request_node_chain(self):
