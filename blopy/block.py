@@ -3,9 +3,9 @@ import logging
 from utils import Utils
 from hashlib import sha256
 from datetime import datetime
-# from Utils import dict_to_json
 
 class Block(object):
+    utils = Utils()
     def forge(self,index,previous_hash,transactions):
         block = {'index': index,
                  'nonce': 0,
