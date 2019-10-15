@@ -36,6 +36,7 @@ class Server(threading.Thread):
         self._sock_.bind(('', self._port_))
         self._sock_.listen()
         self._sock_.settimeout(self.timeout)
+        self.set_server_alive()
         logging.info('Server: is waiting for income connections.')
 
     def send_to_nodes(self, data):
