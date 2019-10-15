@@ -1,6 +1,14 @@
 import json
+import logging
+
+from pprint import pprint
+from hashlib import sha256
 
 class Utils(object):
+    def compute_hash(self, block):
+        json_block = self.dict_to_json(block)
+        return sha256(json_block.encode()).hexdigest()
+
     def json_to_dict(self, data):
         try:
             dict_data = json.loads(data)
