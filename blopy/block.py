@@ -16,22 +16,22 @@ class Block(object):
             return block
         return False
 
-    def compute_hash(self, block):
-        convert = Utils()
-        json_block = convert.dict_to_json(block)
-        return sha256(json_block.encode()).hexdigest()
-
     def validate(self, block):
         if block['index'] == 0:
             return True
+
         validate = self.Validate(block)
-        if (not validate.keys() or
-            not validate.values() or
-            not validate.proof()):
-                return False
-        return True
+        if validate.keys() and validate.values():
+            return True
+        return False
+
+    def is_proof_valid(self, block):
+        if self.utils.validate_proof(block):
+            return True
+        return False
 
     class Validate(object):
+        utils = Utils()
         block_required_items = {'index': int,
                                  'nonce': int,
                                  'previous_hash': str,
