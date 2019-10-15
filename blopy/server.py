@@ -19,8 +19,12 @@ class Server(threading.Thread):
         self._stop_flag_ = threading.Event()
         self._nodesIn_ = []
         self._nodesOut_ = []
+        self.alive = False
         self.timeout = timeout
         self.bc = Blockchain(self)
+
+    def set_server_alive(self):
+        self.alive = True
 
     def is_any_node_alive(self):
         if self._nodesIn_ or self._nodesOut_:
