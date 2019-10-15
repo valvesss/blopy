@@ -14,11 +14,12 @@ bob.bc.forge_genesis_block('IM BOB')
 # bob.connect_with_peer('localhost', 6000)
 
 # bob.bc.create_genesis_block('IM BOB')
-# data = {'company_name': 'It works!', 'company_data': 'Bloco do Bob'}
-# bob.bc.new_transaction(data)
-# bob.bc.mine()
+data = {'company_user': 'Papa',
+        'company_name': 'Fatec!',
+        'company_data': 'Bloco do Papa'}
+bob.bc.new_tx(data)
+bob.bc.mine()
+bob.join()
+pprint(bob.bc.shared_ledger)
 # time.sleep(8)
-# bob.bc.forge_block()
-# bob.bc.request_add_block()
 # time.sleep(12)
-# pprint(bob.bc.chain)
