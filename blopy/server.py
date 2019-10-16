@@ -7,6 +7,7 @@ import socket
 import logging
 import threading
 
+from message import Message
 from blockchain import Blockchain
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s :: %(levelname)s :: %(message)s')
@@ -19,11 +20,13 @@ class Server(threading.Thread):
         self._stop_flag_ = threading.Event()
         self._nodesIn_ = []
         self._nodesOut_ = []
+        self.shared_tx = []
+        self.shared_ledger = []
         self.alive = False
         self.timeout = timeout
         self.bc = Blockchain(self)
 
-    def set_server_alive(self):
+    def setserveralive(self):
         self.alive = True
 
     def is_any_node_alive(self):
@@ -36,8 +39,13 @@ class Server(threading.Thread):
         self._sock_.bind(('', self._port_))
         self._sock_.listen()
         self._sock_.settimeout(self.timeout)
-        self.set_server_alive()
+        self.setserveralive()
         logging.info('Server: is waiting for income connections.')
+
+    def write_message(self, type, flag, content):
+        m = Message()
+        message = m.create(type, flag, content)
+        self.send_to_nodes(message)
 
     def send_to_nodes(self, data):
         if self._nodesIn_:
@@ -48,12 +56,12 @@ class Server(threading.Thread):
             for node in self._nodesOut_:
                 node.send(data)
 
-    def create_new_server_connection(self, host, port):
+    def create_newserverconnection(self, host, port):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             sock.connect((host, port))
         except socket.timeout:
-            self.close_server_connection('timeout')
+            self.closeserverconnection('timeout')
         except:
             logging.error("Server: could not connect to OutPeer: {0}:{1}!".format(host,port))
             return False
@@ -62,7 +70,7 @@ class Server(threading.Thread):
     def connect_with_peer(self, host, port):
         if self.validate_new_peer_connection(host, port):
             index = len(self._nodesOut_)
-            sock = self.create_new_server_connection(host, port)
+            sock = self.create_newserverconnection(host, port)
             if not sock:
                 return False
             outbound_peer = node.Node(self, sock, (host, port), index, 'Out')
@@ -86,7 +94,7 @@ class Server(threading.Thread):
                 return False
         return True
 
-    def close_server_connection(self, msg):
+    def closeserverconnection(self, msg):
         if not self._stop_flag_.is_set():
             self.stop()
             self.close_connected_nodes()
@@ -116,10 +124,10 @@ class Server(threading.Thread):
             try:
                 peer_socket, peer_addr = self._sock_.accept()
             except socket.timeout:
-                self.close_server_connection('timeout')
+                self.closeserverconnection('timeout')
             inbound_peer = node.Node(self, peer_socket, peer_addr, index, 'In')
             inbound_peer.start()
             logging.info('Server: connected to InPeer: #{0} {1}:{2}.'.format(index,peer_addr[0],peer_addr[1]))
             self._nodesIn_.append(inbound_peer)
 
-        self.close_server_connection('finished run.')
+        self.closeserverconnection('finished run.')
