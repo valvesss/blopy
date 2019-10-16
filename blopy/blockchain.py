@@ -16,7 +16,7 @@ class Blockchain(object):
         self.server = server
         self.local_tx = []
         self.shared_tx = []
-        self.count_tx = None
+        self.count_tx = 0
         self.local_block = None
         self.shared_ledger = []
         self.pow_difficulty = 2
@@ -30,9 +30,8 @@ class Blockchain(object):
             sleep(1)
 
     def get_tx_num(self):
-        if self.count_tx:
-            return self.count_tx
-        return 1
+        self.count_tx += 1
+        return self.count_tx
 
     # Block
     def forge_genesis_block(self, content=None):
@@ -92,19 +91,20 @@ class Blockchain(object):
         tx = Transaction()
         data['index'] = self.get_tx_num()
         tx_raw = tx.new(data)
-        self.local_tx.append(data)
+        self.local_tx.append(tx_raw)
         self.send_tx_to_nodes()
 
     def send_tx_to_nodes(self):
         if self.server.is_any_node_alive():
-            msg = self.message.create('request', 4, [data])
+            msg = self.message.create('request', 4, self.local_tx)
             self.server.send_to_nodes(msg)
             logging.info('Server Blockchain: a new tx was sent to the network')
         else:
             self.add_tx()
 
     def add_tx(self):
-        self.shared_tx.append(self.local_tx)
+        for tx in self.local_tx:
+            self.shared_tx.append(tx)
         self.clear_local_tx()
 
     def clear_local_tx(self):
