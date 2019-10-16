@@ -3,3 +3,4 @@ __pycache__
 todo.py
 local*
 cli
+.idea
