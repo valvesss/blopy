@@ -21,6 +21,19 @@ class Node(threading.Thread):
         self.timeout = server.timeout
         self._sock_.settimeout(self.timeout)
         self.wait_response = 0
+        h = threading.Thread(target=self.handle_message)
+        h.start()
+
+    def get_server_ledger(self):
+        if self.server.shared_ledger:
+            return True
+        return False
+
+    def get_ledger_size(self):
+        return len(self.server.shared_ledger)
+
+    def clear_ledger(self):
+        self.server.shared_ledger = []
 
     def stop(self):
         if not self._stop_flag_.is_set():
