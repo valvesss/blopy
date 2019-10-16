@@ -1,91 +1,54 @@
 # blopy
 
+# THIS BRANCH IS BROKEN!! IM WORKING ON INT!!
+
 Blopy is a python library that provides a full self blockchain node. It
 handles P2P connections, immutable-ledger, cryptography, consensus protocol and
 mining functions.
 
-Each node runs independently until find other nodes in the network. As the
-premise says: "if the node found has a large chain, it adapts to it".
+Each node runs independently until connect to other nodes in the network. As the
+premise says: "if the node connected has a large chain, it adapts to it".
 
 The application was made to run by third part, so use it with a client.
 
-- Client example:
+- Running a Peer (Server)
 
-> from blockchain import *
+See [Server](https://github.com/valvesss/blopy/wiki/Lib:-Server)
 
-> from server import Server
+- Running a Peer (Node)
 
-> from message import Message
+See [Node](https://github.com/valvesss/blopy/wiki/Lib:-Node)
 
-> m = Message()
+- Blocks, Transactions and Mine
 
-1) Starting a node (In one terminal)
+See [Blockchain](https://github.com/valvesss/blopy/wiki/Lib:-blockchain)
 
-> bob = Server('localhost', 5000, 10)
+- Messages
 
-> bob.start()
+See [Messages](https://github.com/valvesss/blopy/wiki/Lib:-Message)
 
-2) Starting other node (In other terminal)
+- Request/Response to other nodes
 
-> alice = Server('localhost', 6000, 10)
-
-> alice.start()
-
-3) Connecting to other nodes:
-
-> bob.connect_with_peer('localhost', 6000)
-
-4) Create genesis block:
-
-> bk = Blockchain()
-
-> bk.create_genesis_block()
-
-5) Send transactions to all peers-shared-tx-memory
-
-> data = {'company_name': 'It works!', 'company_data': 'Bloco do Bob'}
-
-> bk.new_transaction(data)
-
-6) Mining !!!
-
-> bk.mine()
-
-7) Forge a new block
-
-> bk.forge_block()
-
-8) Requesting other nodes validation for new block
-
-> bob.bc.request_add_block()
-
-9) Request node chain size:
-
-> req = m.create('request', 1)
-
-> bob.send_to_nodes(req)
-
-10) Request other's node chain blocks:
-
-> req = m.create('request', 2)
-
-> bob.send_to_nodes(req)
+See [Handler](https://github.com/valvesss/blopy/wiki/Lib:-Handler)
 
 - Tests:
 
-To test the application, simple execute:
-
-> python -m unittest -v test_server
+See [Tests](https://github.com/valvesss/blopy/wiki/Running-tests)
 
 # TO-DO LIST
 
-- Smart consensus (51%)
+- Step validation for nodes running different chains (but in same network)
+- Node search for other nodes over the network
+- Smart consensus (>51%)
+- Have immutable-ledger out of memory
+- Integration with NGROK
+- Integration with IPFS
 - More...
 
 # Contribute
 
-- Help with documentation!!!!!!!!!!!
-- Help writing tests!!!!!!!!!!!
+- Help with documentation!
+- Help writing tests!
 - Help forking!
 - Help pulling requests!
 

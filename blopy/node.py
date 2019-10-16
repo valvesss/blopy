@@ -3,14 +3,16 @@ import socket
 import logging
 import threading
 
-from blockchain import Block
-from handler import Handler, Response, Request
+from time import sleep
+from block import Block
+from pprint import pprint
+from handler import Response, Request
 
 class Node(threading.Thread):
     def __init__(self, server, sock, addr, index, type):
         super(Node, self).__init__()
-        self._server_ = server
-        self._server_host_ = server._host_
+        self.server = server
+        self.serverhost_ = server._host_
         self._sock_ = sock
         self._host_ = addr[0]
         self._port_ = addr[1]
@@ -21,6 +23,19 @@ class Node(threading.Thread):
         self.timeout = server.timeout
         self._sock_.settimeout(self.timeout)
         self.wait_response = 0
+        h = threading.Thread(target=self.handle_message)
+        h.start()
+
+    def get_server_ledger(self):
+        if self.server.shared_ledger:
+            return True
+        return False
+
+    def get_ledger_size(self):
+        return len(self.server.shared_ledger)
+
+    def clear_ledger(self):
+        self.server.shared_ledger = []
 
     def stop(self):
         if not self._stop_flag_.is_set():
@@ -30,26 +45,39 @@ class Node(threading.Thread):
         while not self._stop_flag_.is_set():
             data = ""
             try:
-                data = self._sock_.recv(1024)
+                data = self._sock_.recv(2048)
             except socket.timeout:
                 self.close_connection('timeout')
             except Exception as err:
                 pass
             if data:
-                message_decoded = self.decode_data(data)
-                self._buffer_.append(message_decoded)
-                self.handle_message(message_decoded)
+                message = self.decode_data(data)
+                self._buffer_.append(message)
         self.close_connection('finished run')
 
-    def handle_message(self, message):
-        handle = Handler(self, message)
-        handle.validate()
+    def add_block(self, block):
+        self.server.shared_ledger.append(block)
+
+    def handle_message(self):
+        while not self._stop_flag_.is_set():
+            if self._buffer_:
+                for i in range(len(self._buffer_)-1):
+                    pprint(self._buffer_[i])
+                    if self._buffer_[i]['msg_type'] == 'request':
+                        Response(self, self._buffer_[i])
+                    elif self._buffer_[i]['msg_type'] == 'response':
+                        Request(self, self._buffer_[i])
+                    else:
+                        logging.error('{0}Peer #{1}: received a message not valid!'.format(self.type,self.index))
+                    self._buffer_.pop(i)
+            sleep(0.5)
 
     def decode_data(self, data):
         try:
             data = data.decode('ascii')
             data = json.loads(data)
         except Exception as error:
+            from pprint import pprint
             logging.error('{0}Peer #{1}: Could not decode data!'.format(self.type,self.index))
         return data
 

@@ -17,7 +17,7 @@ class TestHandler(unittest.TestCase):
         def __init__(self):
             self.type = 'Out'
             self.index = 1
-            self._server_ = Server('localhost', 5000, 10)
+            self.server = Server('localhost', 5000, 10)
 
     node = NodeMock()
     h = Handler(node, data)
