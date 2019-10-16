@@ -48,10 +48,10 @@ class TestServer(unittest.TestCase):
         server.join()
         server2.join()
 
-    def test_close_server_connection(self):
+    def test_closeserverconnection(self):
         server = Server('localhost', 3000, 1)
         server.start()
-        server.close_server_connection('unit test')
+        server.closeserverconnection('unit test')
         server.join()
 
     def test_close_connected_nodes(self):
