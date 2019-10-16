@@ -30,26 +30,39 @@ class Node(threading.Thread):
         while not self._stop_flag_.is_set():
             data = ""
             try:
-                data = self._sock_.recv(1024)
+                data = self._sock_.recv(2048)
             except socket.timeout:
                 self.close_connection('timeout')
             except Exception as err:
                 pass
             if data:
-                message_decoded = self.decode_data(data)
-                self._buffer_.append(message_decoded)
-                self.handle_message(message_decoded)
+                message = self.decode_data(data)
+                self._buffer_.append(message)
         self.close_connection('finished run')
 
-    def handle_message(self, message):
-        handle = Handler(self, message)
-        handle.validate()
+    def add_block(self, block):
+        self.server.shared_ledger.append(block)
+
+    def handle_message(self):
+        while not self._stop_flag_.is_set():
+            if self._buffer_:
+                for i in range(len(self._buffer_)-1):
+                    pprint(self._buffer_[i])
+                    if self._buffer_[i]['msg_type'] == 'request':
+                        Response(self, self._buffer_[i])
+                    elif self._buffer_[i]['msg_type'] == 'response':
+                        Request(self, self._buffer_[i])
+                    else:
+                        logging.error('{0}Peer #{1}: received a message not valid!'.format(self.type,self.index))
+                    self._buffer_.pop(i)
+            sleep(0.5)
 
     def decode_data(self, data):
         try:
             data = data.decode('ascii')
             data = json.loads(data)
         except Exception as error:
+            from pprint import pprint
             logging.error('{0}Peer #{1}: Could not decode data!'.format(self.type,self.index))
         return data
 
