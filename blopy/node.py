@@ -3,14 +3,16 @@ import socket
 import logging
 import threading
 
+from time import sleep
 from block import Block
-from handler import Handler, Response, Request
+from pprint import pprint
+from handler import Response, Request
 
 class Node(threading.Thread):
     def __init__(self, server, sock, addr, index, type):
         super(Node, self).__init__()
-        self._server_ = server
-        self._server_host_ = server._host_
+        self.server = server
+        self.serverhost_ = server._host_
         self._sock_ = sock
         self._host_ = addr[0]
         self._port_ = addr[1]
