@@ -40,11 +40,3 @@ class Utils(object):
                 logging.error('Server Transaction: Transaction #{} values are not valid!'.format(data['index']))
                 return False
         return True
-
-    def validate_proof(self, block):
-        block_hash = self.compute_hash(block)
-        if (not (block_hash.startswith('0' * 2) or
-                block_hash != block['hash'])):
-            logging.error('Server Blockchain: Block #{} has no valid proof!'.format(self.block['index']))
-            return False
-        return True
