@@ -64,7 +64,6 @@ class Node(threading.Thread):
         self.server.shared_ledger.append(block)
 
     def handle_message(self):
-        logging.info('Node: Started handle messages')
         while not self._stop_flag_.is_set():
             if self._buffer_:
                 logging.info('New message in buffer')
