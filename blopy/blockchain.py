@@ -49,27 +49,30 @@ class Blockchain(object):
         self.local_block = self.block.forge(0, content, [])
         self.local_block['hash'] = self.utils.compute_hash(self.local_block)
         self.add_block()
-        logging.info('Server Blockchain: genesis block created.')
+        logging.info('Blockchain: Block: genesis was created.')
 
     def validate_previous_hash(self, block_raw):
         last_block = self.last_block
+        if not last_block:
+            return False
         if block_raw['previous_hash'] != last_block['hash']:
-            logging.error('Server Blockchain: Block #{} previous_hash is not valid!'.format(block['index']))
+            logging.error('Blockchain: Block: #{} previous_hash is not valid!'.format(block['index']))
             return False
         return True
 
     def add_block(self):
         self.server.shared_ledger.append(self.local_block)
-        logging.info('Server Blockchain: inserted block #{0}'.format(self.local_block['index']))
+        logging.info('Blockchain: Block: #{0} was inserted in the ledger'.format(self.local_block['index']))
+        self.clear_shared_tx(self.local_block)
         self.clear_local_block()
 
     def request_add_block(self):
         if not self.local_block:
-            logging.info('Server Blockchain: There is no block to mine!.')
+            logging.info('Blockchain: Block: No one to sent over network!.')
             return False
         if self.server.is_any_node_alive():
             self.server.write_message('request', 3, [self.local_block])
-            logging.info('Server Blockchain: Local blocks were sent to validation.')
+            logging.info('Blockchain: Block: Local was sent to validation.')
         else:
             self.add_block()
 
