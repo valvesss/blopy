@@ -1,6 +1,7 @@
 import json
 import logging
 import datetime
+import threading
 
 from time import sleep
 from block import Block
@@ -16,10 +17,16 @@ class Blockchain(object):
         self.count_tx = 0
         self.local_block = None
         self.pow_difficulty = 2
+        self.start_thread_funcs()
+
+    def start_thread_funcs(self):
+        threading.Thread(target=self.mine).start()
 
     @property
     def last_block(self):
-        return self.server.shared_ledger[-1]
+        if self.server.shared_ledger:
+            return self.server.shared_ledger[-1]
+        return False
 
     def get_local_block(self):
         return self.local_block
@@ -70,15 +77,22 @@ class Blockchain(object):
         self.local_block = self.block.forge(self.last_block['index'] + 1,
                                             self.last_block['hash'],
                                             self.server.shared_tx)
+        logging.info('Blockchain: Block: #{0} was forged.'.format(self.local_block['index']))
 
     def clear_local_block(self):
         self.local_block = None
 
     # Mine
     def mine(self):
-        self.forge_block()
-        self.proof_of_work()
-        self.request_add_block()
+        logging.info('Blockchain: Mine: started.')
+        while not self.server._stop_flag_.is_set():
+            if self.server.shared_tx and self.server.shared_ledger:
+                self.forge_block()
+                self.proof_of_work()
+                logging.info('Blockchain: Mine: block #{0} was mined. Sending to the network.'.format(self.local_block['index']))
+                self.request_add_block()
+            sleep(2)
+        logging.info('Blockchain: Mine: stopped.')
 
     def proof_of_work(self):
         block = self.local_block
