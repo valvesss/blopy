@@ -63,18 +63,22 @@ class Node(threading.Thread):
         self.server.shared_ledger.append(block)
 
     def handle_message(self):
+        logging.info('Node: Started handle messages')
         while not self._stop_flag_.is_set():
             if self._buffer_:
-                for i in range(len(self._buffer_)-1):
-                    pprint(self._buffer_[i])
-                    if self._buffer_[i]['msg_type'] == 'request':
-                        Response(self, self._buffer_[i])
-                    elif self._buffer_[i]['msg_type'] == 'response':
-                        Request(self, self._buffer_[i])
+                logging.info('New message in buffer')
+                local_buffer = self._buffer_
+                self._buffer_ = []
+                for message in local_buffer:
+                    if message['msg_type'] == 'request':
+                        Response(self, message)
+                    elif message['msg_type'] == 'response':
+                        Request(self, message)
+                    elif message['msg_type'] == 'announce':
+                        Announce(self, message)
                     else:
                         logging.error('{0}Peer #{1}: received a message not valid!'.format(self.type,self.index))
-                    self._buffer_.pop(i)
-            sleep(0.5)
+            sleep(1)
 
     def decode_data(self, data):
         try:
