@@ -30,7 +30,7 @@ class Request(object):
         self.node.clear_ledger()
         for json_block in self.data['content'][0]:
             block = u.json_to_dict(json_block)
-            if b.validate(block) and b.is_proof_valid(block):
+            if b.validate(block):
                 self.node.add_block(block)
         logging.info('{0}Peer #{1}: Response: received a new chain. Refreshing!'.format(self.node.type,self.node.index))
 

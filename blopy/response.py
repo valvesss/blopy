@@ -40,10 +40,10 @@ class Response:
         logging.info('{0}Peer #{1}: Response: received a new block!'.format(self.node.type,self.node.index))
         block = self.data['content'][0]
         if not self.node.get_server_ledger():
-            logging.error('{0}Peer #{1}: Response: I cannot validate blocks! Server has no chain!'.format(self.node.type,self.node.index))
-            self.return_response(3, True)
+            logging.error('{0}Peer #{1}: Response: I cannot validate blocks! Server has no chain. Authorizing!'.format(self.node.type,self.node.index))
+            self.return_response(3, block)
         else:
-            if b.validate(block) and b.is_proof_valid(block):
+            if b.validate(block):
                 self.node.add_block(block)
                 self.return_response(3, block)
                 self.node.server.annouce_new_block(block['index'])
