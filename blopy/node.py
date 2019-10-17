@@ -6,7 +6,8 @@ import threading
 from time import sleep
 from block import Block
 from pprint import pprint
-from handler import Response, Request
+from request import Request
+from response import Response
 
 class Node(threading.Thread):
     def __init__(self, server, sock, addr, index, type):
