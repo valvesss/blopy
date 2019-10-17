@@ -111,21 +111,28 @@ class Blockchain(object):
         data['index'] = self.get_tx_num()
         tx_raw = tx.new(data)
         self.local_tx.append(tx_raw)
+        logging.info('Blockchain: Transaction: added new tx to local')
         self.send_tx_to_nodes()
 
     def send_tx_to_nodes(self):
         if self.server.is_any_node_alive():
             self.server.write_message('request', 4, self.local_tx)
             self.clear_local_tx()
-            logging.info('Server Blockchain: a new tx was sent to the network')
+            logging.info('Blockchain: Transaction: a new tx was sent to the network')
         else:
             self.add_tx()
 
     def add_tx(self):
         for tx in self.local_tx:
             self.server.shared_tx.append(tx)
-            logging.info('Server Blockchain: inserted tx #{0}'.format(tx['index']))
+            logging.info('Blockchain: Transaction: inserted tx #{0}'.format(tx['index']))
         self.clear_local_tx()
 
     def clear_local_tx(self):
+        logging.info('Blockchain: Transaction: local txs cleared')
         self.local_tx = []
+
+    def clear_shared_tx(self, block):
+        confirmed_txs = [tx['index'] for tx in block['transactions']]
+        logging.info('Blockchain: Transaction: shared txs cleared')
+        self.server.shared_tx = [tx for tx in self.server.shared_tx if tx['index'] not in confirmed_txs]
