@@ -1,7 +1,6 @@
 import json
 import logging
 
-from pprint import pprint
 from hashlib import sha256
 
 class Utils(object):
