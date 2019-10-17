@@ -36,11 +36,17 @@ class Block(object):
 
         def __init__(self, block):
             self.block = block
+            self.block_hash = self.block_hash()
             self.remove_hash()
 
         def remove_hash(self):
             if 'hash' in self.block:
+                self.block_hash = self.block['hash']
                 del self.block['hash']
+
+        def block_hash(self):
+            if 'hash' in self.block:
+                return self.block['hash']
 
         def keys(self):
             if self.utils.validate_dict_keys(self.block, self.block_required_items):
