@@ -8,6 +8,7 @@ from block import Block
 from pprint import pprint
 from request import Request
 from response import Response
+from announce import Announce
 
 class Node(threading.Thread):
     def __init__(self, server, sock, addr, index, type):
