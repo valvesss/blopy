@@ -14,4 +14,4 @@ class Announce(object):
     def new_block(self):
         block_number = self.data['content'][0]
         logging.info('Announcement: block #{0} was declared valid!'.format(block_number))
-        self.node.server.write_message('request',1)
+        self.node.server.write_message('request', 1)
