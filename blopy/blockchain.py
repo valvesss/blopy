@@ -72,7 +72,6 @@ class Blockchain(object):
             return False
         if self.server.is_any_node_alive():
             self.server.write_message('request', 3, [self.local_block])
-            logging.info('Blockchain: Block: Local was sent to validation.')
         else:
             self.add_block()
 
@@ -80,7 +79,6 @@ class Blockchain(object):
         self.local_block = self.block.forge(self.last_block['index'] + 1,
                                             self.last_block['hash'],
                                             self.server.shared_tx)
-        logging.info('Blockchain: Block: #{0} was forged.'.format(self.local_block['index']))
 
     def clear_local_block(self):
         self.local_block = None
@@ -110,9 +108,12 @@ class Blockchain(object):
         tx = Transaction()
         data['index'] = self.get_tx_num()
         tx_raw = tx.new(data)
-        self.local_tx.append(tx_raw)
-        logging.info('Blockchain: Transaction: added new tx to local')
-        self.send_tx_to_nodes()
+        if tx_raw:
+            self.local_tx.append(tx_raw)
+            logging.info('Blockchain: Transaction: added new tx to local')
+            self.send_tx_to_nodes()
+        else:
+            self.count_tx -= 1
 
     def send_tx_to_nodes(self):
         if self.server.is_any_node_alive():
