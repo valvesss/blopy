@@ -2,7 +2,7 @@ import logging
 
 from message import Message
 
-class Request(object):
+class Announce(object):
     def __init__(self, node, data):
         self.node = node
         self.data = data
