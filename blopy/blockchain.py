@@ -46,9 +46,9 @@ class Blockchain(object):
     def forge_genesis_block(self, content=None):
         self.checkserverstatus()
         content = "Yo I'm Rupert (aka Genesis Blok) {0}".format(content)
-        self.local_block = self.block.forge(0, content, [])
-        self.local_block['hash'] = self.utils.compute_hash(self.local_block)
-        self.add_block()
+        genesis_block = self.block.forge(0, content, [])
+        genesis_block['hash'] = self.utils.compute_hash(genesis_block)
+        self.server.shared_ledger.append(genesis_block)
         logging.info('Blockchain: Block: genesis was created.')
 
     def validate_previous_hash(self, block_raw):
