@@ -19,7 +19,8 @@ class Message(object):
             logging.error('Message: {content} is not valid!')
             return False
 
-        if message['msg_type'] != 'request' and message['msg_type'] != 'response':
+        valid_messages_type = ['request', 'response', 'announce']
+        if message['msg_type'] not in valid_messages_type:
             logging.error('Message: {msg_type} is not valid!')
             return False
 
