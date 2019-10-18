@@ -56,6 +56,8 @@ class Response:
             logging.info('{0}Peer #{1}: Response: transaction #{2} is valid!'.format(self.node.type,self.node.index,tx['index']))
             self.node.server.shared_tx.append(tx)
             self.return_response(4, tx)
+        else:
+            self.return_response(4)
 
     def return_response(self, flag, content=None):
         m = Message()
