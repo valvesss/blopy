@@ -17,7 +17,7 @@ class Request(object):
             self.chain_sync()
         elif self.data['flag'] == 3:
             self.new_block()
-        else:
+        elif self.data['flag'] == 4:
             self.new_tx()
 
     def chain_size(self):
