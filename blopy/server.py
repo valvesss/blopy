@@ -42,19 +42,25 @@ class Server(threading.Thread):
         self.setserveralive()
         logging.info('Server: is waiting for income connections.')
 
-    def write_message(self, type, flag, content):
+    def write_message(self, type, flag, content=None):
         m = Message()
-        message = m.create(type, flag, content)
+        message = m.create(type, flag, [content])
         self.send_to_nodes(message)
 
     def send_to_nodes(self, data):
+        nodes_alive = False
         if self._nodesIn_:
             for node in self._nodesIn_:
                 node.send(data)
+                nodes_alive = True
 
         if self._nodesOut_:
             for node in self._nodesOut_:
                 node.send(data)
+                nodes_alive = True
+
+        if not nodes_alive:
+            logging.info('Server: could not send message! No node connected.')
 
     def create_newserverconnection(self, host, port):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

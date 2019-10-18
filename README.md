@@ -1,7 +1,5 @@
 # blopy
 
-# THIS BRANCH IS BROKEN!! IM WORKING ON INT!!
-
 Blopy is a python library that provides a full self blockchain node. It
 handles P2P connections, immutable-ledger, cryptography, consensus protocol and
 mining functions.

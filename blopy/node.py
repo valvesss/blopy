@@ -6,7 +6,9 @@ import threading
 from time import sleep
 from block import Block
 from pprint import pprint
-from handler import Response, Request
+from request import Request
+from response import Response
+from announce import Announce
 
 class Node(threading.Thread):
     def __init__(self, server, sock, addr, index, type):
@@ -23,12 +25,15 @@ class Node(threading.Thread):
         self.timeout = server.timeout
         self._sock_.settimeout(self.timeout)
         self.wait_response = 0
+        self.start_thread_funcs()
+
+    def start_thread_funcs(self):
         h = threading.Thread(target=self.handle_message)
         h.start()
 
     def get_server_ledger(self):
         if self.server.shared_ledger:
-            return True
+            return self.server.shared_ledger
         return False
 
     def get_ledger_size(self):
@@ -57,20 +62,23 @@ class Node(threading.Thread):
 
     def add_block(self, block):
         self.server.shared_ledger.append(block)
+        self.server.bc.clear_shared_tx(block)
 
     def handle_message(self):
         while not self._stop_flag_.is_set():
             if self._buffer_:
-                for i in range(len(self._buffer_)-1):
-                    pprint(self._buffer_[i])
-                    if self._buffer_[i]['msg_type'] == 'request':
-                        Response(self, self._buffer_[i])
-                    elif self._buffer_[i]['msg_type'] == 'response':
-                        Request(self, self._buffer_[i])
+                local_buffer = self._buffer_
+                self._buffer_ = []
+                for message in local_buffer:
+                    if message['msg_type'] == 'request':
+                        Response(self, message)
+                    elif message['msg_type'] == 'response':
+                        Request(self, message)
+                    elif message['msg_type'] == 'announce':
+                        Announce(self, message)
                     else:
                         logging.error('{0}Peer #{1}: received a message not valid!'.format(self.type,self.index))
-                    self._buffer_.pop(i)
-            sleep(0.5)
+            sleep(1)
 
     def decode_data(self, data):
         try:

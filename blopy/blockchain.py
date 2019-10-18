@@ -1,6 +1,7 @@
 import json
 import logging
 import datetime
+import threading
 
 from time import sleep
 from block import Block
@@ -16,10 +17,16 @@ class Blockchain(object):
         self.count_tx = 0
         self.local_block = None
         self.pow_difficulty = 2
+        self.start_thread_funcs()
+
+    def start_thread_funcs(self):
+        threading.Thread(target=self.mine).start()
 
     @property
     def last_block(self):
-        return self.server.shared_ledger[-1]
+        if self.server.shared_ledger:
+            return self.server.shared_ledger[-1]
+        return False
 
     def get_local_block(self):
         return self.local_block
@@ -39,30 +46,32 @@ class Blockchain(object):
     def forge_genesis_block(self, content=None):
         self.checkserverstatus()
         content = "Yo I'm Rupert (aka Genesis Blok) {0}".format(content)
-        self.local_block = self.block.forge(0, content, [])
-        self.local_block['hash'] = self.utils.compute_hash(self.local_block)
-        self.add_block()
-        logging.info('Server Blockchain: genesis block created.')
+        genesis_block = self.block.forge(0, content, [])
+        genesis_block['hash'] = self.utils.compute_hash(genesis_block)
+        self.server.shared_ledger.append(genesis_block)
+        logging.info('Blockchain: Block: genesis was created.')
 
     def validate_previous_hash(self, block_raw):
         last_block = self.last_block
+        if not last_block:
+            return False
         if block_raw['previous_hash'] != last_block['hash']:
-            logging.error('Server Blockchain: Block #{} previous_hash is not valid!'.format(block['index']))
+            logging.error('Blockchain: Block: #{} previous_hash is not valid!'.format(block['index']))
             return False
         return True
 
     def add_block(self):
         self.server.shared_ledger.append(self.local_block)
-        logging.info('Server Blockchain: inserted block #{0}'.format(self.local_block['index']))
+        logging.info('Blockchain: Block: #{0} was inserted in the ledger'.format(self.local_block['index']))
+        self.clear_shared_tx(self.local_block)
         self.clear_local_block()
 
     def request_add_block(self):
         if not self.local_block:
-            logging.info('Server Blockchain: There is no block to mine!.')
+            logging.info('Blockchain: Block: No one to sent over network!.')
             return False
         if self.server.is_any_node_alive():
-            self.server.write_message('request', 3, [self.local_block])
-            logging.info('Server Blockchain: Local blocks were sent to validation.')
+            self.server.write_message('request', 3, self.local_block)
         else:
             self.add_block()
 
@@ -76,9 +85,15 @@ class Blockchain(object):
 
     # Mine
     def mine(self):
-        self.forge_block()
-        self.proof_of_work()
-        self.request_add_block()
+        logging.info('Blockchain: Mine: started.')
+        while not self.server._stop_flag_.is_set():
+            if self.server.shared_tx and self.server.shared_ledger:
+                self.forge_block()
+                self.proof_of_work()
+                logging.info('Blockchain: Mine: block #{0} was mined. Sending to the network.'.format(self.local_block['index']))
+                self.request_add_block()
+            sleep(5)
+        logging.info('Blockchain: Mine: stopped.')
 
     def proof_of_work(self):
         block = self.local_block
@@ -93,22 +108,29 @@ class Blockchain(object):
         tx = Transaction()
         data['index'] = self.get_tx_num()
         tx_raw = tx.new(data)
-        self.local_tx.append(tx_raw)
-        self.send_tx_to_nodes()
+        if tx_raw:
+            self.local_tx.append(tx_raw)
+            self.send_tx_to_nodes()
+        else:
+            self.count_tx -= 1
 
     def send_tx_to_nodes(self):
         if self.server.is_any_node_alive():
             self.server.write_message('request', 4, self.local_tx)
             self.clear_local_tx()
-            logging.info('Server Blockchain: a new tx was sent to the network')
         else:
             self.add_tx()
 
     def add_tx(self):
         for tx in self.local_tx:
             self.server.shared_tx.append(tx)
-            logging.info('Server Blockchain: inserted tx #{0}'.format(tx['index']))
+            logging.info('Blockchain: inserted tx #{0}'.format(tx['index']))
         self.clear_local_tx()
 
     def clear_local_tx(self):
         self.local_tx = []
+
+    def clear_shared_tx(self, block):
+        confirmed_txs = [tx['index'] for tx in block['transactions']]
+        logging.info('Blockchain: shared txs cleared')
+        self.server.shared_tx = [tx for tx in self.server.shared_tx if tx['index'] not in confirmed_txs]
