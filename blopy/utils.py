@@ -25,6 +25,8 @@ class Utils(object):
         return json_data
 
     def validate_dict_keys(self, data, base_dict):
+        if not isinstance(data,dict):
+            return False
         data_keys = [k for k in data.keys()]
         base_keys = [k for k in base_dict.keys()]
         if sorted(data_keys) != sorted(base_keys):
@@ -33,6 +35,8 @@ class Utils(object):
         return True
 
     def validate_dict_values(self, data, base_dict):
+        if not isinstance(data,dict):
+            return False
         keys = [k for k in data.keys()]
         for i in range(len(keys)):
             if type(data[keys[i]]) != base_dict[keys[i]]:
