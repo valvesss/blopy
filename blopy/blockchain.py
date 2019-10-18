@@ -92,7 +92,7 @@ class Blockchain(object):
                 self.proof_of_work()
                 logging.info('Blockchain: Mine: block #{0} was mined. Sending to the network.'.format(self.local_block['index']))
                 self.request_add_block()
-            sleep(5)
+            sleep(10)
         logging.info('Blockchain: Mine: stopped.')
 
     def proof_of_work(self):
