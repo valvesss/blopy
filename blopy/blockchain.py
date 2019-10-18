@@ -71,7 +71,7 @@ class Blockchain(object):
             logging.info('Blockchain: Block: No one to sent over network!.')
             return False
         if self.server.is_any_node_alive():
-            self.server.write_message('request', 3, [self.local_block])
+            self.server.write_message('request', 3, self.local_block)
         else:
             self.add_block()
 
