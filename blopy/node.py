@@ -62,6 +62,7 @@ class Node(threading.Thread):
 
     def add_block(self, block):
         self.server.shared_ledger.append(block)
+        self.server.bc.clear_shared_tx(block)
 
     def handle_message(self):
         while not self._stop_flag_.is_set():
