@@ -42,9 +42,9 @@ class Server(threading.Thread):
         self.setserveralive()
         logging.info('Server: is waiting for income connections.')
 
-    def write_message(self, type, flag, content):
+    def write_message(self, type, flag, content=None):
         m = Message()
-        message = m.create(type, flag, content)
+        message = m.create(type, flag, [content])
         self.send_to_nodes(message)
 
     def send_to_nodes(self, data):
