@@ -1,6 +1,8 @@
-__pycache__
 .gitignore
 todo.py
 local*
-cli
+cli*
 .idea
+/blopy/cli*
+__init*
+/blopy/__*
