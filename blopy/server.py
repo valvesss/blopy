@@ -67,9 +67,6 @@ class Server(threading.Thread):
             return False
         return sock
 
-    def annouce_new_block(self, content=None):
-        self.write_message('announce', 20, [content])
-
     def connect_with_peer(self, host, port):
         if self.validate_new_peer_connection(host, port):
             index = len(self._nodesOut_)
