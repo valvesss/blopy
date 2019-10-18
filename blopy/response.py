@@ -27,20 +27,18 @@ class Response:
     def chain_size(self):
         server_chain_size = self.node.get_ledger_size()
         self.return_response(1, server_chain_size)
-        logging.info('{0}Peer #{1}: Response: sent a chain size response'.format(self.node.type,self.node.index))
 
     def chain_sync(self):
         u = Utils()
         blocks = [u.dict_to_json(block) for block in self.node.get_server_ledger()]
         self.return_response(2, blocks)
-        logging.info('{0}Peer #{1}: Response: sent a chain sync response'.format(self.node.type,self.node.index))
 
     def new_block(self):
         b = Block()
-        logging.info('{0}Peer #{1}: Response: received a new block!'.format(self.node.type,self.node.index))
         block = self.data['content'][0]
         if not self.node.get_server_ledger():
-            logging.error('{0}Peer #{1}: Response: I cannot validate blocks! Server has no chain. Authorizing!'.format(self.node.type,self.node.index))
+            # Server has no chain, cannot validate previous hash
+            logging.error('{0}Peer #{1}: cannot validate blocks! Authorizing!'.format(self.node.type,self.node.index))
             self.return_response(3, block)
         else:
             if b.validate(block):
