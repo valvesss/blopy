@@ -51,7 +51,7 @@ class Response:
     def new_transaction(self):
         t = Transaction()
         logging.info('{0}Peer #{1}: Response: received a new transaction!'.format(self.node.type,self.node.index))
-        tx = self.data['content'][0]
+        tx = self.data['content'][0][0]
         if t.validate(tx):
             logging.info('{0}Peer #{1}: Response: transaction #{2} is valid!'.format(self.node.type,self.node.index,tx['index']))
             self.node.server.shared_tx.append(tx)
