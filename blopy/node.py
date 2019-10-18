@@ -6,6 +6,7 @@ import threading
 from time import sleep
 from block import Block
 from pprint import pprint
+from message import Message
 from request import Request
 from response import Response
 from announce import Announce
@@ -26,6 +27,12 @@ class Node(threading.Thread):
         self._sock_.settimeout(self.timeout)
         self.wait_response = 0
         self.start_thread_funcs()
+        self.chain_sync()
+
+    def chain_sync(self):
+        m = Message()
+        msg = m.create('request', 1)
+        self.send(msg)
 
     def start_thread_funcs(self):
         h = threading.Thread(target=self.handle_message)
@@ -57,7 +64,8 @@ class Node(threading.Thread):
                 pass
             if data:
                 message = self.decode_data(data)
-                self._buffer_.append(message)
+                if message:
+                    self._buffer_.append(message)
         self.close_connection('finished run')
 
     def add_block(self, block):
@@ -85,8 +93,8 @@ class Node(threading.Thread):
             data = data.decode('ascii')
             data = json.loads(data)
         except Exception as error:
-            from pprint import pprint
             logging.error('{0}Peer #{1}: Could not decode data!'.format(self.type,self.index))
+            return False
         return data
 
     def encode_data(self,data):
