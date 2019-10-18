@@ -11,7 +11,6 @@ class Message(object):
                         'timestamp': str(datetime.now())}
         if self.validate(new_message):
             self.announce(new_message)
-            time.sleep(3)
             return new_message
 
     def validate(self, message):
