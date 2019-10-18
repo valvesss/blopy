@@ -67,7 +67,6 @@ class Node(threading.Thread):
     def handle_message(self):
         while not self._stop_flag_.is_set():
             if self._buffer_:
-                logging.info('New message in buffer')
                 local_buffer = self._buffer_
                 self._buffer_ = []
                 for message in local_buffer:
