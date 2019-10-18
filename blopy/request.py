@@ -31,7 +31,7 @@ class Request(object):
         for json_block in self.data['content'][0]:
             block = u.json_to_dict(json_block)
             if b.validate(block):
-                self.node.add_block(block)
+                self.node.server.shared_ledger.append(block)
         logging.info('{0}Peer #{1}: chain renewed!'.format(self.node.type,self.node.index))
 
     def new_block(self):
