@@ -42,12 +42,12 @@ class Response:
             self.return_response(3, block)
         else:
             if b.validate(block):
-                self.node.server.write_message('announce', 1, block['index'])
                 self.node.add_block(block)
                 self.return_response(3, block)
+                self.node.server.write_message('announce', 1, block['index'])
             else:
-                self.node.server.write_message('announce', 2, block['index'])
                 self.return_response(3)
+                self.node.server.write_message('announce', 2, block['index'])
 
     def new_transaction(self):
         t = Transaction()
