@@ -42,10 +42,11 @@ class Response:
             self.return_response(3, block)
         else:
             if b.validate(block):
+                self.node.server.write_message('announce', 1, block['index'])
                 self.node.add_block(block)
                 self.return_response(3, block)
-                self.node.server.annouce_new_block(block['index'])
             else:
+                self.node.server.write_message('announce', 2, block['index'])
                 self.return_response(3)
 
     def new_transaction(self):
