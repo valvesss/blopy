@@ -37,14 +37,11 @@ class Request(object):
     def new_block(self):
         block = self.data['content'][0]
         if block:
-            self.node.add_block(block)
-            logging.info('{0}Peer #{1}: block #{2} added to shared_ledger'.format(self.node.type,self.node.index,block['index']))
+                self.node.add_block(block)
 
     def new_tx(self):
         tx = self.data['content'][0]
-        if tx:
-            self.node.server.shared_tx.append(tx)
-            logging.info('{0}Peer #{1}: tx #{2} added to shared_tx'.format(self.node.type,self.node.index,tx['index']))
+        self.node.is_tx_valid(tx)
 
     def validate_chain_size(self, size):
         if size > self.node.get_ledger_size():

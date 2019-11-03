@@ -1,3 +1,4 @@
+import sys
 import json
 import logging
 import datetime
@@ -7,6 +8,8 @@ from time import sleep
 from block import Block
 from utils import Utils
 from transaction import Transaction
+
+from pprint import pprint
 
 class Blockchain(object):
     block = Block()
@@ -39,8 +42,7 @@ class Blockchain(object):
             sleep(1)
 
     def get_tx_num(self):
-        self.count_tx += 1
-        return self.count_tx
+        return len(self.server.shared_tx)
 
     # Block
     def forge_genesis_block(self, content=None):
@@ -51,12 +53,14 @@ class Blockchain(object):
         self.server.shared_ledger.append(genesis_block)
         logging.info('Blockchain: Block: genesis was created.')
 
-    def validate_previous_hash(self, block_raw):
+    def validate_previous_hash(self):
         last_block = self.last_block
         if not last_block:
             return False
-        if block_raw['previous_hash'] != last_block['hash']:
-            logging.error('Blockchain: Block: #{} previous_hash is not valid!'.format(block['index']))
+        pprint(self.local_block)
+        pprint(self.last_block)
+        if self.local_block['previous_hash'] != self.last_block['hash']:
+            logging.error('Blockchain: Block: #{} previous_hash is not valid!'.format(self.local_block['index']))
             return False
         return True
 
@@ -65,6 +69,7 @@ class Blockchain(object):
         logging.info('Blockchain: Block: #{0} was inserted in the ledger'.format(self.local_block['index']))
         self.clear_shared_tx(self.local_block)
         self.clear_local_block()
+        self.server.stop()
 
     def request_add_block(self):
         if not self.local_block:
@@ -79,6 +84,7 @@ class Blockchain(object):
         self.local_block = self.block.forge(self.last_block['index'] + 1,
                                             self.last_block['hash'],
                                             self.server.shared_tx)
+        logging.info('Blockchain: Mine: block forged')
 
     def clear_local_block(self):
         self.local_block = None
@@ -87,12 +93,13 @@ class Blockchain(object):
     def mine(self):
         logging.info('Blockchain: Mine: started.')
         while not self.server._stop_flag_.is_set():
-            if self.server.shared_tx and self.server.shared_ledger:
+            if self.check_available_txs():
                 self.forge_block()
-                self.proof_of_work()
-                logging.info('Blockchain: Mine: block #{0} was mined. Sending to the network.'.format(self.local_block['index']))
-                self.request_add_block()
-            sleep(10)
+                if self.validate_previous_hash():
+                    self.proof_of_work()
+                    logging.info('Blockchain: Mine: block #{0} was mined. Sending to the network.'.format(self.local_block['index']))
+                    self.request_add_block()
+            sleep(8)
         logging.info('Blockchain: Mine: stopped.')
 
     def proof_of_work(self):
@@ -101,6 +108,7 @@ class Blockchain(object):
         while not computed_hash.startswith('0' * self.pow_difficulty):
             block['nonce'] += 1
             computed_hash = self.utils.compute_hash(block)
+            logging.info('Im trying to mine!!!')
         self.local_block['hash'] = computed_hash
 
     # Transactions
@@ -113,6 +121,18 @@ class Blockchain(object):
             self.send_tx_to_nodes()
         else:
             self.count_tx -= 1
+
+    def check_available_txs(self):
+        if not self.server.shared_tx or not self.server.shared_ledger:
+            return False
+
+        for tx in self.server.shared_tx:
+            for block in self.server.shared_ledger:
+                for transactions in block['transactions']:
+                    if tx['index'] == transactions['index']:
+                        logging.info('Blockchain: found an equal tx')
+                    return False
+        return True
 
     def send_tx_to_nodes(self):
         if self.server.is_any_node_alive():
@@ -132,5 +152,4 @@ class Blockchain(object):
 
     def clear_shared_tx(self, block):
         confirmed_txs = [tx['index'] for tx in block['transactions']]
-        logging.info('Blockchain: shared txs cleared')
         self.server.shared_tx = [tx for tx in self.server.shared_tx if tx['index'] not in confirmed_txs]

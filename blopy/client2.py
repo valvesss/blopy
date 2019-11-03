@@ -2,16 +2,13 @@ import time
 
 from pprint import pprint
 from server import Server
-from message import Message
 
 alice = Server('localhost', 6000, 20)
 alice.start()
-m = Message()
-
-# alice.bc.create_genesis_block('IM ALICE')
-time.sleep(5)
-msg = m.create('request', 1)
-alice.send_to_nodes(msg)
-# time.sleep(15)
+time.sleep(3)
+for i in range(4):
+    data = {'company_user': 'Alice', 'company_name': 'Fatec!', 'company_data': '{0}'.format(i)}
+    alice.bc.new_tx(data)
+    time.sleep(3)
 alice.join()
-pprint(alice.shared_ledger)
+pprint(alice.shared_tx)

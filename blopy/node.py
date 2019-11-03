@@ -10,6 +10,7 @@ from message import Message
 from request import Request
 from response import Response
 from announce import Announce
+from transaction import Transaction
 
 class Node(threading.Thread):
     def __init__(self, server, sock, addr, index, type):
@@ -70,7 +71,19 @@ class Node(threading.Thread):
 
     def add_block(self, block):
         self.server.shared_ledger.append(block)
+        logging.info('{0}Peer #{1}: block #{2} added to shared_ledger'.format(self.type,self.index,block['index']))
         self.server.bc.clear_shared_tx(block)
+
+    def is_tx_valid(self, tx):
+        t = Transaction()
+        stored_txs_indexes = [stored_tx['index'] for stored_tx in self.server.shared_tx]
+        if t.validate(tx) and tx['index'] not in stored_txs_indexes:
+            self.add_tx(tx)
+            return True
+
+    def add_tx(self, tx):
+        self.server.shared_tx.append(tx)
+        logging.info('{0}Peer #{1}: tx #{2} added to shared_tx'.format(self.type,self.index,tx['index']))
 
     def handle_message(self):
         while not self._stop_flag_.is_set():

@@ -34,6 +34,9 @@ class Server(threading.Thread):
             return True
         return False
 
+    def nodes_num(self):
+        return len(self._nodesIn_) + len(self._nodesOut_)
+
     def scale_up(self):
         self._sock_ = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._sock_.bind(('', self._port_))

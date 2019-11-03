@@ -50,10 +50,8 @@ class Response:
                 self.node.server.write_message('announce', 2, block['index'])
 
     def new_transaction(self):
-        t = Transaction()
         tx = self.data['content'][0][0]
-        if t.validate(tx):
-            self.node.server.shared_tx.append(tx)
+        if self.node.is_tx_valid(tx):
             self.return_response(4, tx)
         else:
             self.return_response(4)
