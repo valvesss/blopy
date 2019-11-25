@@ -22,7 +22,8 @@ class Node(threading.Thread):
         self._port_ = addr[1]
         self.index = index
         self.type = type
-        self._buffer_ = []
+        self.buffer_sent = []
+        self.buffer_recv = []
         self._stop_flag_ = threading.Event()
         self.timeout = server.timeout
         self._sock_.settimeout(self.timeout)
@@ -33,11 +34,11 @@ class Node(threading.Thread):
     def chain_sync(self):
         m = Message()
         msg = m.create('request', 1)
-        self.send(msg)
+        self.buffer_sent.append(msg)
 
     def start_thread_funcs(self):
-        h = threading.Thread(target=self.handle_message)
-        h.start()
+        threading.Thread(target=self.handle_message).start()
+        threading.Thread(target=self.send).start()
 
     def get_server_ledger(self):
         if self.server.shared_ledger:
@@ -66,7 +67,7 @@ class Node(threading.Thread):
             if data:
                 message = self.decode_data(data)
                 if message:
-                    self._buffer_.append(message)
+                    self.buffer_recv.append(message)
         self.close_connection('finished run')
 
     def add_block(self, block):
@@ -87,9 +88,9 @@ class Node(threading.Thread):
 
     def handle_message(self):
         while not self._stop_flag_.is_set():
-            if self._buffer_:
-                local_buffer = self._buffer_
-                self._buffer_ = []
+            if self.buffer_recv:
+                local_buffer = self.buffer_recv
+                self.buffer_recv = []
                 for message in local_buffer:
                     if message['msg_type'] == 'request':
                         Response(self, message)
@@ -99,7 +100,7 @@ class Node(threading.Thread):
                         Announce(self, message)
                     else:
                         logging.error('{0}Peer #{1}: received a message not valid!'.format(self.type,self.index))
-            sleep(1)
+                    sleep(0.1)
 
     def decode_data(self, data):
         try:
@@ -107,6 +108,7 @@ class Node(threading.Thread):
             data = json.loads(data)
         except Exception as error:
             logging.error('{0}Peer #{1}: Could not decode data!'.format(self.type,self.index))
+            pprint(data)
             return False
         return data
 
@@ -131,18 +133,21 @@ class Node(threading.Thread):
             return False
         return data
 
-    def send(self, data):
-        if not self._stop_flag_.is_set():
-            data = self.encode_data(data)
-            if not data:
-                return False
-            try:
-                self._sock_.sendall(data)
-            except Exception as err:
-                logging.info('Server: failed to sent a message to {0}Peer: #{1}. \nError: {2}'.format(self.type,self.index,err))
-                return False
-        else:
-            logging.error('{0}Peer #{1}: Could not sent message! I\'m already shut down!'.format(self.type,self.index))
+    def send(self):
+        while not self._stop_flag_.is_set():
+            if self.buffer_sent:
+                local_buffer = self.buffer_sent
+                self.buffer_sent = []
+                for data in local_buffer:
+                    data = self.encode_data(data)
+                    if not data:
+                        return False
+                    try:
+                        self._sock_.sendall(data)
+                    except Exception as err:
+                        logging.info('Server: failed to sent a message to {0}Peer: #{1}. \nError: {2}'.format(self.type,self.index,err))
+                        return False
+                    sleep(0.1)
 
     def close_connection(self, msg):
         if not self._stop_flag_.is_set():

@@ -51,4 +51,4 @@ class Request(object):
     def request_node_chain(self):
         m = Message()
         msg = m.create('request', 2)
-        self.node.send(msg)
+        self.node.buffer_sent.append(msg)

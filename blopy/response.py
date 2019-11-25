@@ -59,4 +59,4 @@ class Response:
     def return_response(self, flag, content=None):
         m = Message()
         response = m.create('response', flag, [content])
-        self.node.send(response)
+        self.node.buffer_sent.append(response)

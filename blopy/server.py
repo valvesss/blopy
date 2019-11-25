@@ -54,12 +54,12 @@ class Server(threading.Thread):
         nodes_alive = False
         if self._nodesIn_:
             for node in self._nodesIn_:
-                node.send(data)
+                node.buffer_sent.append(data)
                 nodes_alive = True
 
         if self._nodesOut_:
             for node in self._nodesOut_:
-                node.send(data)
+                node.buffer_sent.append(data)
                 nodes_alive = True
 
         if not nodes_alive:
