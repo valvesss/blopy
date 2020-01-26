@@ -60,7 +60,7 @@ class Block(object):
 
         def proof(self):
             block_hash = self.utils.compute_hash(self.block)
-            if (not (block_hash.startswith('0' * 2) or
+            if (not (block_hash.startswith('0' * 3) or
                     block_hash != self.block_hash)):
                 logging.error('Server Blockchain: Block #{} has no valid proof!'.format(self.block['index']))
                 return False

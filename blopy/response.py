@@ -38,7 +38,8 @@ class Response:
         block = self.data['content'][0]
         if not self.node.get_server_ledger():
             # Server has no chain, cannot validate previous hash
-            logging.error('{0}Peer #{1}: cannot validate blocks! Authorizing!'.format(self.node.type,self.node.index))
+            logging.error("""{0}Peer #{1}: cannot validate blocks!
+             Authorizing!""".format(self.node.type,self.node.index))
             self.return_response(3, block)
         else:
             if b.validate(block):

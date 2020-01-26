@@ -19,8 +19,8 @@ class Blockchain(object):
         self.local_tx = []
         self.count_tx = 0
         self.local_block = None
-        self.pow_difficulty = 2
-        # self.start_thread_funcs()
+        self.pow_difficulty = 3
+        self.start_thread_funcs()
 
     def start_thread_funcs(self):
         threading.Thread(target=self.mine).start()
@@ -58,8 +58,6 @@ class Blockchain(object):
         last_block = self.last_block
         if not last_block:
             return False
-        # pprint(self.local_block)
-        # pprint(self.last_block)
         if self.local_block['previous_hash'] != self.last_block['hash']:
             logging.error('Blockchain: Block: #{} previous_hash is not valid!'.format(self.local_block['index']))
             return False
@@ -98,9 +96,10 @@ class Blockchain(object):
                 self.forge_block()
                 if self.validate_previous_hash():
                     self.proof_of_work()
-                    logging.info('Blockchain: Mine: block #{0} was mined. Sending to the network.'.format(self.local_block['index']))
+                    logging.info("""Blockchain: Mine: block #{0} was mined. 
+                    Sending to the network.""".format(self.local_block['index']))
                     self.request_add_block()
-            sleep(8)
+            sleep(6)
         logging.info('Blockchain: Mine: stopped.')
 
     def proof_of_work(self):
